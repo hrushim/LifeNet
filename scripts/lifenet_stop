@@ -1,0 +1,26 @@
+#!/bin/bash
+
+echo -e "\n============ LifeNet_Beta 1.0 unload utility ============"
+
+touch $APP_DATA_PATH/install_log
+killall -9 inject | wc -l 1>> $APP_DATA_PATH/install_log
+killall -9 sniff | wc -l 1>> $APP_DATA_PATH/install_log
+
+echo ""
+
+echo -e -n "\nStarting Network Manager..."
+
+NM_START_FLAG=`sudo NetworkManager | wc -l`
+
+sleep 2
+
+if [ "$NM_START_FLAG" ==  "0" ]; then
+
+        echo -e -n "OK\n"
+
+else
+
+        echo -e "\nUnable to resume Network Manager gracefully. If it is not already up, you may have to manually restart it. Proceeding further..."
+
+fi
+

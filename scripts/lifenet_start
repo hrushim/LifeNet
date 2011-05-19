@@ -1,0 +1,255 @@
+#!/bin/bash
+
+INSTALL_DIR=`cat config/install_path.conf`
+
+echo -e "\n============ LifeNet_Beta 1.0 zipstart utility ============\n"
+
+# References / Acknowledgements for the Parser: http://www.unix.com/shell-programming-scripting/39734-how-parse-config-variables-external-file-shell-script.html
+
+# Function: get_config_list config_file
+# Purpose : Print the list of configs from config file
+get_config_list()
+{
+        typeset config_file=$1
+
+        awk -F '[][]' '
+                NF==3 && $0 ~ /^\[.*\]/ { print $2 }
+        ' ${config_file}
+}
+
+# Function : set_config_vars config_file config [var_prefix]
+# Purpose  : Set variables (optionaly prefixed by var_prefix) from config in config file
+set_config_vars()
+{
+        typeset config_file=$1
+        typeset config=$2
+        typeset var_prefix=$3
+        typeset config_vars
+
+        config_vars=$(
+                        awk -F= -v Config="${config}" -v Prefix="${var_prefix}" '
+                        BEGIN {
+                                Config = toupper(Config);
+                                patternConfig = "\\[" Config "]";
+                        }
+                        toupper($0)  ~ patternConfig,(/\[/ && toupper($0) !~ patternConfig)  {
+                                if (/\[/ || NF <2) next;
+                                sub(/^[[:space:]]*/, "");
+                                sub(/[[:space:]]*=[[:space:]]/, "=");
+                                print Prefix $0;
+                        } ' ${config_file} )
+
+        eval "${config_vars}"
+        echo Configuration parameters are : ${config_vars}
+}
+
+
+#
+# Set variables for all config from config file
+#
+file=$HOME/.LifeNetData/config/mymanet.conf
+
+echo -e -n "\nReading Tolerance, Alpha and Beta parameters from the configuration file...\n\n"
+
+for cfg in $(get_config_list ${file})
+do
+        echo "--- Configuration [${cfg}] ---"
+        unset $(set | awk -F= '/^cfg_/  { print $1 }') MYMANET_
+        set_config_vars ${file} ${cfg} MYMANET_
+        set | grep ^MYMANET_
+done
+
+export MYMANET_TOLERANCE
+export MYMANET_IS_EMB_DEV
+export MYMANET_ALPHA
+export MYMANET_BETA
+export MYMANET_HB_INTERVAL
+export MYMANET_FWD_THRESHOLD
+
+HAS_KERNEL_SUPPORT=`uname -r | grep -i "2.6.3" | wc -l`
+if [ "$HAS_KERNEL_SUPPORT" -eq "1"  ]; then
+
+        MYMANET_KERNEL_VERSION_6_30_PLUS=1
+        #exit
+
+else
+
+        MYMANET_KERNEL_VERSION_6_30_PLUS=0
+fi
+
+export MYMANET_KERNEL_VERSION_6_30_PLUS
+
+echo "Kernel 6.3 plus? = $MYMANET_KERNEL_VERSION_6_30_PLUS"
+
+sleep 2
+
+echo -e "\nMake sure you have disabled the NetworkManager!\n"
+read KEY
+
+echo -e -n "\nGathering network configuration data..."
+
+APP_DATA_PATH=$HOME/.LifeNetData
+INSTALL_DIR_PATH=`cat $APP_DATA_PATH/config/install_path.conf | awk ' {  print $1  } ' `
+ETH_IF=`cat $APP_DATA_PATH/config/eth_iface.conf | awk ' {  print $1  } ' `
+WIFI_IF=`cat $APP_DATA_PATH/config/wifi_iface.conf | awk ' {  print $1  } ' `
+NODE_NAME=`cat $APP_DATA_PATH/config/node_name.conf | awk ' {  print $1  } ' `
+
+sleep 1
+
+echo -e -n "OK"
+
+echo -e -n "\nClearing app data..."
+rm $APP_DATA_PATH/config/hosts 2>&1 $APP_DATA_PATH/config/log_install
+COMMAND_OUT=`cat $APP_DATA_PATH/config/hosts | wc -l`
+if [ "$COMMAND_OUT" == "0" ]; then
+	echo -e -n "OK"
+else
+	echo -e -n "ERROR!"
+fi
+
+echo -e -n "\nGenerating dynamic IP address for LifeNet on $WIFI_IF..."
+
+MAC_TAIL1=`ifconfig $WIFI_IF | grep HWaddr | awk '{ print $5 }' | awk ' BEGIN { FS=":" } { print $5$6 } ' `
+MAC_TAIL=${MAC_TAIL1:1}
+let MAC_DECIMAL=0x$MAC_TAIL
+RANDOM=$MAC_DECIMAL
+let MULT=RANDOM*255
+let RESULT=MULT/32767
+WIFI_IP="192.168.0."$RESULT
+if [ "$RESULT" = "1" ]; then
+        let MULT=RANDOM*255
+        let RESULT=MULT/32767
+        WIFI_IP="192.168.0."$RESULT
+fi
+if [ "$RESULT" = "255" ]; then
+        let MULT=RANDOM*255
+        let RESULT=MULT/32767
+        WIFI_IP="192.168.0."$RESULT
+fi
+sleep 1
+
+echo -e -n "$WIFI_IP... OK\n"
+
+sudo iwconfig $WIFI_IF ap 00:00:00:00:00:00
+
+sleep 2
+
+echo -e -n "Bringing down your interface $WIFI_IF..."
+COMMAND_OUT=`sudo ifconfig $WIFI_IF down 2>&1 | wc -l`
+sleep 2
+if [ "$COMMAND_OUT" == "0"  ]; then
+	echo -e -n "OK\n"
+else
+	echo -e -n "Error\n"
+	echo -e -n "Network configuration error due to driver problems!! Please restart this script. Reboot your machine if this problem persists. Terminating...\n"
+	exit
+fi
+
+
+echo -e -n "Configuring $WIFI_IF in adhoc mode..."
+COMMAND_OUT=`iwconfig $WIFI_IF mode ad-hoc 2>&1 | wc -l`
+sleep 2
+if [ "$COMMAND_OUT" == "0"  ]; then
+	echo -e -n "OK\n"
+else
+	echo -e -n "Error\n"
+	echo -e -n "Network configuration error due to driver problems!! Please restart this script. \nReboot your machine if this problem persits. \nTerminating...\n"
+	exit
+fi
+
+echo -e -n "Configuring $WIFI_IF channel..."
+COMMAND_OUT=`iwconfig $WIFI_IF channel 1 2>&1 | wc -l`
+sleep 2
+if [ "$COMMAND_OUT" == "0"  ]; then
+	echo -e -n "OK\n"
+else
+	echo -e -n "Error\n"
+	echo -e -n "Network configuration error due to driver problems!! Please restart this script. \nReboot your machine if this problem persits. \nTerminating...\n"
+	exit
+fi
+
+ifconfig $WIFI_IF up
+sleep 2
+
+echo -e -n "Configuring $WIFI_IF in set ESSID..."
+COMMAND_OUT=`iwconfig $WIFI_IF ESSID lifenet 2>&1 | wc -l`
+#COMMAND_OUT=`iwconfig $WIFI_IF ESSID hrushi 2>&1 | wc -l`
+sleep 2
+if [ "$COMMAND_OUT" == "0"  ]; then
+	echo -e -n "OK\n"
+else
+	echo -e -n "Error\n"
+	echo -e -n "Network configuration error due to driver problems!! Please restart this script. \nReboot your machine if this problem persits. \nTerminating...\n"
+	exit
+fi
+
+echo -e -n "Committing configuration changes for $WIFI_IF..."
+COMMAND_OUT=`sudo ifconfig $WIFI_IF $WIFI_IP up 2>&1 | wc -l`
+sleep 2
+if [ "$COMMAND_OUT" == "0"  ]; then
+	echo -e -n "OK\n"
+else
+	echo -e -n "Error\n"
+	echo -e -n "Network configuration error due to driver problems!! Please restart this script. Reboot your machine if this problem persists. Terminating...\n"
+	exit
+fi
+
+
+rmmod manifold
+echo -e -n "Inserting LifeNet Kernel Module..."
+
+COMMAND_OUT=`insmod $HOME/.LifeNetData/manifold.ko device_name=$WIFI_IF mymanet_alpha=$MYMANET_ALPHA mymanet_beta=$MYMANET_BETA 2>&1 | wc -l `
+
+sleep 2
+if [ "$COMMAND_OUT" == "0"  ]; then
+        echo -e -n "OK\n"
+else
+        echo -e -n "Error\n"
+        echo -e -n "Network configuration error due to driver problems!! Please restart this script. Reboot your machine if this problem persists. Terminating...\n"
+        exit
+fi
+
+if [ "$MYMANET_STORE_PATH" == "1"  ]; then
+
+	echo -e -n "\nStarting Path trace..."
+	xterm -e /bin/pathtracelogger &
+	sleep 2
+	echo -e -n "OK\n"
+
+fi
+
+echo -e -n "\nStarting Injector..."
+xterm -e /bin/inject $WIFI_IF $WIFI_IP $NODE_NAME $MYMANET_HB_INTERVAL &
+sleep 2
+echo -e -n "OK\n"
+
+echo -e -n "\nStarting ARP Updater..."
+#/bin/arpupdater &
+sleep 2
+echo -e -n "OK\n"
+
+echo -e -n "\nStarting DisplayGnst..."
+xterm -e /bin/displaygnst &
+sleep 2
+echo -e -n "OK\n"
+
+
+echo -e -n "Starting Sniffer..."
+sleep 2
+echo -e "\nLifeNet is ON now!!"
+echo -e "\nClose the Sniffer window to exit LifeNet gracefully!"
+/bin/sniff $WIFI_IF $MYMANET_TOLERANCE 0 $MYMANET_IS_EMB_DEV $MYMANET_FWD_THRESHOLD
+
+echo -e "\n============ LifeNet_Beta 1.0 unload utility ============"
+
+echo -e -n "\nRemoving LifeNet Kernel Module"
+COMMAND_OUT=`rmmod manifold 2>&1 | wc -l`
+sleep 2
+echo -e -n "OK"
+
+sudo iwconfig $WIFI_IF ap 00:00:00:00:00:00
+
+sleep 2
+
+touch $APP_DATA_PATH/install_log
+echo "Done!! LifeNet has terminated gracefully."

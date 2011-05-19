@@ -1,0 +1,629 @@
+#!/bin/bash
+
+mkdir config
+
+clear
+
+echo -e "\n============ Welcome to LifeNet_Beta 1.0 configuration ============"
+
+EXIT_FLAG=0
+echo -e "\nChecking installation status of basic required packages..."
+
+echo -e -n "\n- 'bash'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/bin /usr/local/sbin -name bash 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+        EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"bash "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'ant'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name ant 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"ant "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'grep'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name grep 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"grep "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'awk'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name awk 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"awk "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'lshw'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name lshw 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"lshw "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'iwconfig'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name iwconfig 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+        EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"iwconfig "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'ifconfig'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name ifconfig 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"ifconfig "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'gcc'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name gcc 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"gcc "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'xterm'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name xterm 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"xterm "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'java'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name java 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+        echo -e -n "no"
+        EXIT_FLAG=1
+        MISSING_PACKAGES=$MISSING_PACKAGES"java "
+else
+        echo -e -n "yes"
+fi
+
+
+echo -e -n "\n- 'insmod'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name insmod 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"insmod "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'cat'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name cat 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"cat "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'uname'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name uname 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"uname "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'hostname'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name insmod 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"hostname "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'iptables'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name iptables 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"iptables "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'route'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name route 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"route "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'modprobe'......"
+IS_PKG_PRESENT=`find /bin /sbin /usr/bin /usr/sbin /usr/local/sbin /usr/local/sbin -name modprobe 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"modprobe "
+else
+        echo -e -n "yes"
+fi
+
+if [ "$EXIT_FLAG" == "1"  ]; then
+	echo -e "\nFollowing packages are missing -> $MISSING_PACKAGES \nPlease install the missing packages and restart this configuration script. Exiting...\n"
+	exit
+else
+	echo -e "\nAll the required packages are installed. Proceeding further..."
+fi
+
+echo -e "\nNow checking the installation status of basic header files required for compilation of LifeNet. Just a few moments..."
+
+MISSING_PACKAGES=" -> "
+
+EXIT_FLAG=0
+
+echo -e -n "\n- 'linux/kernel.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name kernel.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/kernel.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'linux/init.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name init.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/init.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'linux/sched.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name sched.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/sched.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'linux/module.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name module.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/module.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'linux/moduleparam.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name moduleparam.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/moduleparam.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'linux/netdevice.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name netdevice.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/netdevice.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'linux/etherdevice.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name etherdevice.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/etherdevice.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'net/net_namespace.h'......"
+IS_PKG_PRESENT=`find /usr/include/net -name namespace.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/net_namespace.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'linux/proc_fs.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name proc_fs.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/proc_fs.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'linux/ip.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name ip.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/ip.h "
+else
+        echo -e -n "yes"
+fi
+
+
+echo -e -n "\n- 'linux/string.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name string.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/string.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'linux/list.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name list.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/list.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'linux/timer.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name timer.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/timer.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'linux/time.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name time.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/time.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'stdio.h'......"
+IS_PKG_PRESENT=`find /usr/include -name stdio.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"stdio.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'stdlib.h'......"
+IS_PKG_PRESENT=`find /usr/include -name stdlib.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"stdlib.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'stdint.h'......"
+IS_PKG_PRESENT=`find /usr/include -name stdint.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"stdint.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'string.h'......"
+IS_PKG_PRESENT=`find /usr/include -name string.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"string.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'features.h'......"
+IS_PKG_PRESENT=`find /usr/include -name features.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"features.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'sys/socket.h'......"
+IS_PKG_PRESENT=`find /usr/include/sys -name socket.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"sys/socket.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'linux/if_packet.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name if_packet.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/if_packet.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'linux/if_ether.h'......"
+IS_PKG_PRESENT=`find /usr/include/linux -name if_ether.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"linux/if_ether.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'errno.h'......"
+IS_PKG_PRESENT=`find /usr/include -name errno.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"errno.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'sys/ioctl.h'......"
+IS_PKG_PRESENT=`find /usr/include/sys -name ioctl.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"sys/ioctl.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'net/if.h'......"
+IS_PKG_PRESENT=`find /usr/include/net -name if.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"net/if.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'net/ethernet.h'......"
+IS_PKG_PRESENT=`find /usr/include/net -name ethernet.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"net/ethernet.h "
+else
+        echo -e -n "yes"
+fi
+
+echo -e -n "\n- 'time.h'......"
+IS_PKG_PRESENT=`find /usr/include -name time.h 2>/dev/null | wc -l`
+if [ "$IS_PKG_PRESENT" == "0" ]; then
+	echo -e -n "no"
+	EXIT_FLAG=1
+	MISSING_PACKAGES=$MISSING_PACKAGES"time.h "
+else
+        echo -e -n "yes"
+fi
+
+if [ "$EXIT_FLAG" == "1"  ]; then
+	echo -e "\nFollowing headers are missing $MISSING_PACKAGES \n. If the installation is not successful, please install the missing headers and restart this configuration script. Proceeding further...\n"
+	
+else
+	echo -e "\nAll the required headers are installed. Proceeding further..."
+fi
+
+
+IS_UBUNTU=`cat /etc/issue | grep -i "ubuntu" | wc -l`
+if [ "$IS_UBUNTU" -eq "0"  ]; then
+
+	echo " "
+	echo -e "We are sorry! \nYour operating system does not support LifeNet. \nLifeNet_Beta 1.0 currently works only with Ubuntu. \nKeep checking www.mymanet.org for future releases. \nSupport for your OS will be included soon! Thank you very much for your interest."
+	echo " "
+	echo -e "- LifeNet developer team\n"
+	exit
+
+fi
+
+echo -e "\nPlease enter a name for this machine on LifeNet network (1 - 9 characters long). "
+echo "Enter any name of your choice. You will be seen by other users on the LifeNet network by this name. -> "
+
+read NODE_NAME
+
+if [ "$NODE_NAME" == "" ]; then
+
+	NODE_NAME=`hostname`
+	echo -e "Selected default name -> $NODE_NAME\n"
+
+fi
+
+echo "${NODE_NAME:0:9}" > config/node_name.conf
+
+
+
+echo -e "\nDetecting network interfaces on your machine. This may take a few minutes. Thank you for your patience!"
+
+IFACES=`iwconfig 2>&1 | egrep "ESSID|wireless" | awk '{print $1}'`
+IFACES_STRING=`echo $IFACES`
+echo "$IFACES_STRING" > config/ifaces_list.conf
+IFS=" "
+IFACES_ARR=( $IFACES_STRING )
+
+j=1
+for ((i=0; i<${#IFACES_ARR[@]}; i++))
+
+do
+
+        GET_IFACE=${IFACES_ARR[$i]}
+        GET_MAC=`ifconfig $GET_IFACE | grep "HWaddr" | awk '{print $5}'`
+
+        STRCMP=`echo $GET_MAC`
+
+        if [ -n "$STRCMP" ]; then
+
+                DRIVER_NAME=`lshw -C network | grep -B 7 $GET_MAC | grep "product"`
+                VEND_NAME=`lshw -C network | grep -B 7 $GET_MAC | grep "vendor"`
+		echo "$j. Interface -> $GET_IFACE (${VEND_NAME:15} ${DRIVER_NAME:16})"
+		j=$((j+1))
+		echo ""
+        fi
+done
+
+CONTINUE_FLAG=Y
+
+while [ "$CONTINUE_FLAG" == "Y" -o "$CONTINUE_FLAG" == "y" ]; do
+
+	echo -e "\nAmongst the interfaces detected, please enter the WiFi interface you would like to use... \nYour options are -> $IFACES_STRING"
+	read SELECTED_IFACE
+	CORRECT_IFACE_SELECTION=`grep $SELECTED_IFACE config/ifaces_list.conf | wc -l`
+
+	if [ "$CORRECT_IFACE_SELECTION" -ne "1" ]; then
+
+			echo -e "\nIncorrect interface name entered!!\nPlease enter again."
+			CONTINUE_FLAG=y
+
+	else
+
+		IS_WIRELESS=`iwconfig $SELECTED_IFACE 2>&1 | grep ESSID | wc -l`
+		if [ "$IS_WIRELESS" == "1" ]; then
+
+			CONTINUE_FLAG=N
+
+		else
+
+			echo -e "\nInterface does not support WiFi!!\nPlease enter again"
+			CONTINUE_FLAG=y
+
+		fi
+		
+	fi
+
+done
+
+echo "$SELECTED_IFACE" > config/wifi_iface.conf
+
+CONTINUE_FLAG=Y
+
+while [ "$CONTINUE_FLAG" == "Y" -o "$CONTINUE_FLAG" == "y" ]; do
+
+        echo -e "\nAmongst the interfaces detected, please enter the Ethernet interface you would like to use... \nYour options are -> $IFACES_STRING"
+        read SELECTED_IFACE
+        CORRECT_IFACE_SELECTION=`grep $SELECTED_IFACE config/ifaces_list.conf | wc -l`
+
+        if [ "$CORRECT_IFACE_SELECTION" -ne "1" ]; then
+
+                echo -e "\nIncorrect interface name entered!!\nPlease enter again."
+                CONTINUE_FLAG=y
+
+        else
+		IS_ETHERNET=`iwconfig $SELECTED_IFACE 2>&1 | grep wireless | wc -l`
+		if [ "$IS_ETHERNET" == "1" ]; then
+
+			CONTINUE_FLAG=N
+
+		else
+
+			echo -e "\nInterface does not support Ethernet!!\nPlease enter again."
+			CONTINUE_FLAG=y
+
+                fi
+
+        fi
+
+done
+
+echo "$SELECTED_IFACE" > config/eth_iface.conf
+
+CONTINUE_FLAG=Y
+
+echo -e "\nFollowing is the default LifeNet installation directory -> $HOME/LifeNet"
+echo -e -n "\nChange? (Y/N)"
+read INSTALL_DIR_CHG
+
+INSTALL_DIR=$HOME/LifeNet
+CONTINUE_FLAG=N
+if [ "$INSTALL_DIR_CHG" == "Y" -o "$INSTALL_DIR_CHG" == "y" ]; then
+	CONTINUE_FLAG=Y
+fi
+
+while [ "$CONTINUE_FLAG" == "Y" -o "$CONTINUE_FLAG" == "y" ]; do
+
+        echo -e -n "\nEnter the new installation path (LifeNet will be appended to it) -> "
+        read INSTALL_DIR
+	PATH_EXISTS=`mkdir $INSTALL_DIR 2>&1 | wc -l `
+	
+        if [ "$PATH_EXISTS" -eq "0" ]; then
+
+                CONTINUE_FLAG=N
+		rm -r $INSTALL_DIR
+
+        else
+
+                echo -e "\nThe path that you entered has problems. Enter new path? (Y/N)"
+                read CONTINUE_FLAG
+
+        fi
+
+done
+
+echo "$INSTALL_DIR" > config/install_path.conf
+
+echo -e "\nConfiguration completed successfully!! \nPlease run the 'compile' script -> sudo ./compile\n"

@@ -1,0 +1,8 @@
+#!/bin/bash
+INSTALL_DIR=`cat $HOME/.LifeNetData/config/install_path.conf`
+
+cd $INSTALL_DIR/applications/NetVisualize/dist
+rm /tmp/netv_log
+java -jar NetVisualize.jar 2> /tmp/netv_log
+cd -
+

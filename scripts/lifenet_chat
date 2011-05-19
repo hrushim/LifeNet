@@ -1,0 +1,8 @@
+#!/bin/bash
+INSTALL_DIR=`cat $HOME/.LifeNetData/config/install_path.conf`
+
+cd $INSTALL_DIR/applications/MyMANET-chat/dist
+rm /tmp/chat.log
+java -jar MyMANET.jar 2> /tmp/chat.log
+cd -
+

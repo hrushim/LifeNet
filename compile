@@ -1,0 +1,152 @@
+#!/bin/bash
+clear
+
+# References / Acknowledgements for the Parser: http://www.unix.com/shell-programming-scripting/39734-how-parse-config-variables-external-file-shell-script.html
+
+# Function: get_config_list config_file
+# Purpose : Print the list of configs from config file
+get_config_list()
+{
+	typeset config_file=$1
+
+	awk -F '[][]' '
+		NF==3 && $0 ~ /^\[.*\]/ { print $2 }
+	' ${config_file}
+}
+
+# Function : set_config_vars config_file config [var_prefix]
+# Purpose  : Set variables (optionaly prefixed by var_prefix) from config in config file
+set_config_vars()
+{
+	typeset config_file=$1
+	typeset config=$2
+	typeset var_prefix=$3
+	typeset config_vars
+
+	config_vars=$( 
+			awk -F= -v Config="${config}" -v Prefix="${var_prefix}" '
+			BEGIN { 
+				Config = toupper(Config);
+				patternConfig = "\\[" Config "]";
+			}
+			toupper($0)  ~ patternConfig,(/\[/ && toupper($0) !~ patternConfig)  { 
+				if (/\[/ || NF <2) next;
+				sub(/^[[:space:]]*/, "");
+				sub(/[[:space:]]*=[[:space:]]/, "=");
+				print Prefix $0;
+			} ' ${config_file} )
+
+	eval "${config_vars}"
+	echo Configuration parameters are : ${config_vars}
+}
+
+#
+# Set variables for all config from config file
+#
+file=mymanet.conf
+
+echo -e "\n============ LifeNet_Beta 1.0 compilation ============"
+
+echo -e -n "\nReading Tolerance, Alpha and Beta parameters from the configuration file...\n\n"
+
+for cfg in $(get_config_list ${file})
+do
+	echo "--- Configuration [${cfg}] ---"
+	unset $(set | awk -F= '/^cfg_/  { print $1 }') MYMANET_
+	set_config_vars ${file} ${cfg} MYMANET_
+	set | grep ^MYMANET_
+done
+
+export MYMANET_TOLERANCE
+export MYMANET_IS_EMB_DEV
+export MYMANET_ALPHA
+export MYMANET_BETA
+export MYMANET_STORE_PATH
+
+HAS_KERNEL_SUPPORT=`uname -r | grep -i "2.6.3" | wc -l`
+if [ "$HAS_KERNEL_SUPPORT" -eq "1"  ]; then
+
+        echo "do nothing"
+        MYMANET_KERNEL_VERSION_6_30_PLUS=1
+	export MYMANET_KERNEL_VERSION_6_30_PLUS
+        #exit
+
+else
+        MYMANET_KERNEL_VERSION_6_30_PLUS=0
+	export MYMANET_KERNEL_VERSION_6_30_PLUS
+
+fi
+
+
+echo "Kernel 6.3 plus? = $MYMANET_KERNEL_VERSION_6_30_PLUS"
+
+
+echo -e "Completed\n"
+
+cd src
+
+echo -e "\nCompiling LifeNet kernel module...\n"
+
+sleep 2
+
+make clean
+kern_version=`uname -r`
+echo "Your kernel version is : $kern_version"
+v1=$(echo $kern_version | sed -e 's![^0-9]\+! & !g' -e 's![\.\-]!!g')
+echo $v1
+set -- $v1; v1comp=$2; v2comp=$3; shift; v1=$*
+
+
+if [ $v1comp -lt "6" -o $v1comp -eq "6" -a $v2comp -lt "24" ]; then
+        echo "Seems like you are having an older kernel  - version (2.$v1comp.$v2comp). Setting compilation flag to NEW_KERNEL=0"
+        NEW_KERNEL_TRUE=0
+else
+        echo "Seems like you are having a new kernel  - version (2.$v1comp.$v2comp). Setting compilation flag to NEW_KERNEL=1"
+        NEW_KERNEL_TRUE=1
+fi
+
+make NEW_KERNEL=$NEW_KERNEL_TRUE MYMANET_ALPHA=$MYMANET_ALPHA MYMANET_BETA=$MYMANET_BETA MYMANET_KERNEL_VERSION_6_30_PLUS=$MYMANET_KERNEL_VERSION_6_30_PLUS MYMANET_STORE_PATH=$MYMANET_STORE_PATH
+
+cd ..
+
+echo -e "\nCompilation successful!!"
+
+echo -e "\nCompiling Applications...\n"
+
+if [ "$MYMANET_STORE_PATH" -eq "1"  ]; then
+
+	cd applications/PathTraceLogger
+	make
+	cd ./../../
+
+fi
+
+cd applications/DisplayGnst
+make
+cd ./../../
+
+cd applications/ArpUpdater
+make
+cd ./../../
+
+cd applications/Inject
+make
+cd ./../../
+
+cd applications/Sniff
+make
+cd ../../
+
+cd applications/LifeNetFTP
+ant jar
+cd ../../
+
+cd applications/MyMANET-chat
+ant jar
+cd ../../
+
+cd applications/NetVisualize
+ant jar
+cd ../../
+
+echo -e "\nIf no errors are seen, please run installation script -> sudo ./install\n\n"
