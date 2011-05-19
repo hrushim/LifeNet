@@ -1,0 +1,99 @@
+/*
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Project: LifeNet - A Platform to Build Customized MANET's
+Developers: Hrushikesh Mehendale, Ashwin Paranjpe, Santosh Vempala
+Georgia Institute of Technology, Atlanta, USA
+*/
+
+Last updated - Oct 2010
+
+----------------------
+1. Description of code
+----------------------
+
+	LifeNet --> applications/ - this directory contains 7 applications (Sniffer, Injector, Network visualization, Communicator, File Transfer, ArpUpdater, PathTraceLogger)
+		--> config/       - this directory contains configuration information that is generated during installation
+		--> firewall/     - this directory contains iptables scripts for automated gateway configuration
+                --> src/          - this directory contains the code for LifeNet Kernel Module
+		--> scripts/      - this directory contains executable scripts that are used to start and stop LifeNet and its applications
+		--> configure     - this executable script is used for configuring LifeNet before compilation and installation
+                --> compile       - this executable script is used for compiling LifeNet after configuration and before installation
+                --> install       - this executable script is used to install LifeNet after configuration and compilation
+
+----------------
+2. Compatibility
+----------------
+
+LifeNet supports and has been fully tested on the following operating systems:
+
+- Ubuntu Linux distributions upto 10.04
+- Kubuntu Linux distributions upto 10.04
+
+LifeNet can also work on other Linux distributions. However, the developers haven't yet fully tested LifeNet onto Linux distros other than those mentioned above. Please feel free to try it out on other Linux distributions that you may have and email your feedback to any of the following with 'LifeNet feedback' as your email subject:
+- hrushi@gatech.edu
+- ashwin1985@gmail.com
+- vempala@cc.gatech.edu
+
+---------------------
+3. Installation guide
+---------------------
+
+You need to know the following information before you start the installation:
+a. Name of your Wifi network interface
+b. Name of your Ethernet network interface
+
+[Step 1 - Configuration]
+------------------------
+
+	Command -> $sudo ./configure
+
+[Step 2 - Compilation]
+----------------------
+
+	Command -> $sudo ./compile
+
+[Step 3 - Installation]
+-----------------------
+
+	Command -> $sudo ./install
+
+[Step 4 - LifeNet commands]
+---------------------------
+Once the above mentioned 3 steps are successfully executed, you can use the following commands: 
+
+[Starting LifeNet]
+	Command -> $sudo lifenet_start
+
+[Stopping Lifenet]
+	Command -> $sudo lifenet_stop
+
+[Starting Network Visualization]
+	Command -> $lifenet_visualize
+
+[Starting LifeNet Communicator]
+	Command -> $lifenet_chat
+
+[Starting File Transfer Client]
+	Command -> $lifenet_ftp
+
+---------------
+4. Known issues
+---------------
+
+a. LifeNet requires the Wifi network adapters to function in ad-hoc mode. It may be possible that your machine uses proprietary drivers for Wifi network adapters that do not support adhoc functionality. In that case, LifeNet will not function on your machine. LifeNet has been successfully tested with the following WiFi network drivers:
+- iwl family like iwl3945
+- madwifi
+
+b. LifeNet does not support 64-bit operating systems. Support for the same will be available in subsequent releases. 
