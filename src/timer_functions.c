@@ -18,6 +18,7 @@ Georgia Institute of Technology, Atlanta, USA
 */
 
 #include<linux/timer.h>
+#include"stat_list_functions.h"
 #define MANIFOLD_INTERVAL 30
 
 /*Extern Declaration*/
@@ -36,6 +37,8 @@ struct timer_list g_session_timer;
 
 void timer_func(void)
 {
+	collect_garbage_entries();
+  
 	/*Save the statistics of the previous(complete) session. This will be displayed in the proc entries.*/
 	g_last_session_id = g_session_id;
 	g_manifold_last_session_transmitted_count = g_manifold_session_transmitted_count; 

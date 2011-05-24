@@ -20,6 +20,8 @@ Georgia Institute of Technology, Atlanta, USA
 #ifndef STAT_LIST_FUNCTIONS_H
 #define STAT_LIST_FUNCTIONS_H
 
+#define STATLIST_EXPIRY_INTERVAL 30
+
 struct stat_list{
         int id;
         uint8_t mac[6];
@@ -37,6 +39,7 @@ struct stat_list{
 	int last_num_rx_bcast;
 	int last_num_tx;
 	int last_num_fwd;
+	struct timeval last_recv_time;
         struct stat_list *next;
         struct stat_list *prev;
 };
@@ -47,5 +50,6 @@ int add_or_update_stat_entry(uint8_t mac[6], uint8_t tx_rx_flag, uint32_t sessio
 int free_entire_stat_list(void);
 uint8_t search_and_update_stat(uint8_t mac[6], uint8_t tx_rx_flag, uint32_t session_id, uint8_t dest_mac[6]);
 int check_ignore_mac(uint8_t mac[6]);
+void collect_garbage_entries();
 #endif  /*End of stat_list_functions.h*/
 

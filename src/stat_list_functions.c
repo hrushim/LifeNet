@@ -24,7 +24,7 @@ Georgia Institute of Technology, Atlanta, USA
 #include<linux/moduleparam.h>
 #include<linux/netdevice.h>
 #include<linux/etherdevice.h>
-
+#include<linux/time.h>
 #include<linux/string.h>
 #include<linux/proc_fs.h>
 
@@ -55,6 +55,85 @@ int check_ignore_mac(uint8_t mac[6])
 	else if(compare_mac_address(ignore_mac3, mac) == 1) return 1;
 	else if(compare_mac_address(ignore_mac4, mac) == 1) return 1;
 	else return 0;
+}
+
+void collect_garbage_entries()
+{
+	struct timeval current_time;
+
+	struct stat_list *tmp=NULL;
+	struct stat_list *tmp_next=NULL;
+	struct stat_list *tmp_prev=NULL;
+
+	do_gettimeofday(&current_time);
+
+        if(stat_head == NULL){
+                return;
+        }
+
+        tmp = stat_head;
+
+        while(tmp != NULL){
+
+		tmp_next = tmp->next;
+		tmp_prev = tmp->prev;
+		if((current_time.tv_sec - tmp->last_recv_time.tv_sec) > STATLIST_EXPIRY_INTERVAL)
+		{
+			if(tmp_prev==NULL)
+			{
+				 // If the current element if the first element of the list
+				 // First element is always the broadcast MAC address so 
+				 // don't clean anything if this is the case 
+				 tmp = tmp->next;
+			}
+			else if(tmp_next==NULL)
+			{
+				// If the current element is the last element of the list
+				
+				if(compare_mac_address(bcast_mac, tmp->mac)==0)
+				{
+
+					//rearrange pointers such that tmp is excluded
+					(tmp->prev)->next = NULL;
+
+					
+					//free tmp
+					kfree(tmp);
+					
+					//re-point tmp
+					tmp = tmp_next;
+
+				}
+				else
+					tmp = tmp->next;
+			}
+			else
+			{
+				// If the current element is a middle element in the list i.e. not first and last
+				if(compare_mac_address(bcast_mac, tmp->mac)!=1)
+				{
+
+					//rearrange pointers such that tmp is excluded
+					(tmp->prev)->next = tmp->next;
+					(tmp->next)->prev = tmp->prev;
+					tmp_next = tmp->next;
+					
+					//free tmp
+					kfree(tmp);
+					
+					//re-point tmp
+					tmp = tmp->next;
+
+				}
+				else
+					tmp = tmp->next;
+			}
+		}
+		else
+		{
+			tmp = tmp->next;
+		}
+        }
 }
 
 int add_or_update_stat_entry(uint8_t mac[6], uint8_t tx_rx_flag, uint32_t session_id, uint8_t dest_mac[6])
@@ -95,6 +174,7 @@ int add_or_update_stat_entry(uint8_t mac[6], uint8_t tx_rx_flag, uint32_t sessio
 			stat_head->tx_session_id = 0;
 			stat_head->fwd_session_id = 0;			
 			
+			do_gettimeofday(&stat_head->last_recv_time);
 		}
 		else if(tx_rx_flag == 1){
 			stat_head->tx_session_id = session_id;
@@ -165,6 +245,7 @@ int add_or_update_stat_entry(uint8_t mac[6], uint8_t tx_rx_flag, uint32_t sessio
 				new->num_fwd = 0;
 				new->tx_session_id = 0;
 				new->fwd_session_id = 0;	
+				do_gettimeofday(&new->last_recv_time);
 			}
 			else if(tx_rx_flag == 1){
 				new->tx_session_id = session_id;
@@ -295,6 +376,7 @@ uint8_t search_and_update_stat(uint8_t mac[6], uint8_t tx_rx_flag, uint32_t sess
 						tmp->num_rx++;
 					}
 				}
+				do_gettimeofday(&tmp->last_recv_time);
 			}
 			else if(tx_rx_flag == 1){
 				if(tmp->tx_session_id > 4 && session_id < 2) {
