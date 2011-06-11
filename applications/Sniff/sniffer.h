@@ -108,7 +108,7 @@ struct host {
 } hostlist[MAX_NUM_OF_HOSTS];
 
 uint8_t g_broadcast_mac[6];
-uint8_t g_distance_table[MAX_NUM_OF_HOSTS];
+uint8_t g_distance_table[MAX_NUM_OF_HOSTS][3];
 uint8_t g_mac[6];
 
 int (*g_pluggable_func_ptr)(int receiver, unsigned char recvmac[6], int s, int r);

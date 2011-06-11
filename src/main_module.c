@@ -272,7 +272,7 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 	mymanethdr.timestamp = sec_holder;
 	
 
-//#if DEBUG
+/*
 	printk(KERN_ALERT"    \nReceived Session ID as %d\n", mymanethdr.session_id);
 	printk(KERN_ALERT"    Received Hops Remaining as %d\n", mymanethdr.hops_remaining);
 	printk(KERN_ALERT"    Received Distance as %d\n", mymanethdr.distance);
@@ -283,7 +283,7 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 	printk(KERN_ALERT"    Received Final Dest MAC as %x:%x:%x:%x:%x:%x\n", mymanethdr.final_destination[0], mymanethdr.final_destination[1], 
 		mymanethdr.final_destination[2], mymanethdr.final_destination[3], mymanethdr.final_destination[4], mymanethdr.final_destination[5]);
 	printk(KERN_ALERT"    Received Original Type as %x:%x\n", mymanethdr.eth_type_original[0], mymanethdr.eth_type_original[1]);
-//#endif
+*/
 
 
 	/*Do skb_pull of MANIFOLD_HEADER_SIZE*/
@@ -352,8 +352,19 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 			if(routing_decision(distance_from_me, mymanethdr.orig_distance, mymanethdr.distance, old_timestamp, mymanethdr.timestamp) || 
 				(distance_from_me == 0xFF)) {
 
-//				if(skb->pkt_type == PACKET_BROADCAST){
+				if(skb->pkt_type == PACKET_BROADCAST){
 
+					if(bcast_fwd_threshold > 0)
+					  p_fwd_deno = bcast_fwd_threshold;
+					else
+					  p_fwd_deno = 1;
+					rand_value = random32()%INT_MAX;
+					if(rand_value < (unsigned int)(1*(float)(INT_MAX))/(2*p_fwd_deno)) {
+						mymanethdr.distance = distance_from_me;
+						wdl_modify_and_transmit((skb_copy(skb, GFP_ATOMIC)), netdev, g_broadcast_mac, netdev->dev_addr, mymanethdr);
+					}
+				}
+				else {
 					if(bcast_fwd_threshold < 3) {
 						p_fwd_deno = 2;
 					}
@@ -365,12 +376,9 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 						mymanethdr.distance = distance_from_me;
 						wdl_modify_and_transmit((skb_copy(skb, GFP_ATOMIC)), netdev, g_broadcast_mac, netdev->dev_addr, mymanethdr);
 					}
-//				}
-//				else {
-
 //					mymanethdr.distance = distance_from_me;
 //					wdl_modify_and_transmit((skb_copy(skb, GFP_ATOMIC)), netdev, g_broadcast_mac, netdev->dev_addr, mymanethdr);
-//				}
+				}
 			}
 		}
 
@@ -387,6 +395,7 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 		return 0;
 	}
 	else{	/*Packet is neither broadcast nor unicast. In the case of MyMANET, it appears to be be a garbled packet. Free the skb.*/
+		printk(KERN_ALERT"\nGarbled packet");
 		if(skb != NULL){
 			kfree_skb(skb);
 		}

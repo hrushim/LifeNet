@@ -26,7 +26,7 @@ Georgia Institute of Technology, Atlanta, USA
 #define RANGE 100
 #define TESTING 0
 
-extern uint8_t g_distance_table[MAX_NUM_OF_HOSTS];
+//extern uint8_t g_distance_table[MAX_NUM_OF_HOSTS];
 extern int g_tolerance;
 
 int manifold_routing(int receiver, unsigned char recvmac[6], int s, int r) {
@@ -53,14 +53,19 @@ int manifold_routing(int receiver, unsigned char recvmac[6], int s, int r) {
 
     }
 
-    if (((distance - g_distance_table[receiver]) >= g_tolerance) || (((g_distance_table[receiver] - distance) >= g_tolerance)) || g_distance_table[receiver] == 0) {
+    if (((distance - g_distance_table[receiver][0]) >= g_tolerance) || (((g_distance_table[receiver][0] - distance) >= g_tolerance)) || g_distance_table[receiver][0] == 0) {
         update_kernel_distance_table = 1;
-        g_distance_table[receiver] = distance;
+        g_distance_table[receiver][2] = g_distance_table[receiver][1];
+        g_distance_table[receiver][1] = g_distance_table[receiver][0];
+        if(g_distance_table[receiver][2] == 255 || g_distance_table[receiver][2] == 0 || g_distance_table[receiver][1] == 255 || g_distance_table[receiver][1] == 0 )
+            g_distance_table[receiver][0] = distance;
+        else
+            g_distance_table[receiver][0] = (g_distance_table[receiver][1] + g_distance_table[receiver][2] + distance)/3;
     }
 
     if (update_kernel_distance_table) {
         sprintf(command, "echo distance %x:%x:%x:%x:%x:%x %d > /proc/wdl", recvmac[0], recvmac[1],
-                recvmac[2], recvmac[3], recvmac[4], recvmac[5], g_distance_table[receiver]);
+                recvmac[2], recvmac[3], recvmac[4], recvmac[5], g_distance_table[receiver][0]);
         system(command);
     }
 

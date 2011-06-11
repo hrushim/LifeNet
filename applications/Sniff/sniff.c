@@ -37,7 +37,7 @@ Georgia Institute of Technology, Atlanta, USA
 //struct global_stats g_stats[MAX_NUM_OF_HOSTS][MAX_NUM_OF_HOSTS];
 
 uint8_t g_broadcast_mac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-uint8_t g_distance_table[MAX_NUM_OF_HOSTS] = {0};
+//uint8_t g_distance_table[MAX_NUM_OF_HOSTS][3];
 //static uint8_t g_mac[6];
 
 extern int manifold_routing(int, unsigned char *, int, int);

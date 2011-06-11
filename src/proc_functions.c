@@ -69,7 +69,7 @@ int wdl_read(char* page, char** start, off_t off, int count, int* eof, void *dat
 
 	int len=0;
 
-	printk(KERN_ALERT"Read_flag %d", read_flag);
+	//printk(KERN_ALERT"Read_flag %d", read_flag);
 	
 	if(off > 0) {
 	  *eof = 1;

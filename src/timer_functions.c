@@ -19,7 +19,7 @@ Georgia Institute of Technology, Atlanta, USA
 
 #include<linux/timer.h>
 #include"stat_list_functions.h"
-#define MANIFOLD_INTERVAL 30
+#define MANIFOLD_INTERVAL 60
 
 /*Extern Declaration*/
 extern int g_manifold_session_transmitted_count;

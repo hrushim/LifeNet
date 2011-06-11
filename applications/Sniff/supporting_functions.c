@@ -80,7 +80,9 @@ void initialize_timestamps() {
 void initialize_distances() {
     int i = 0;
     for (i = 0; i < MAX_NUM_OF_HOSTS; i++) {
-        g_distance_table[i] = MAX_DST;
+        g_distance_table[i][0] = MAX_DST;
+        g_distance_table[i][1] = MAX_DST;
+        g_distance_table[i][2] = MAX_DST;
     }
 }
 
@@ -247,7 +249,7 @@ void calculate_distances() {
 
     memset(&command, '\0', 100);
     i = get_id_from_mac(g_mac);
-    g_distance_table[i] = 0;
+    //g_distance_table[i] = 0;
 
     bcast_fwd_deno = 0;
     for (j = 0; j < g_host_count && i>=0; j++) {
