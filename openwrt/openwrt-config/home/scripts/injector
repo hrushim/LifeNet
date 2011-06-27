@@ -1,0 +1,16 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2010 mymanet.org
+START=50
+
+start() {
+
+	/usr/sbin/inject ath0 `cat /home/scripts/ip_add` `cat /home/scripts/node_name` `cat /home/scripts/hb_interval` &
+	
+}
+
+stop() {
+
+	kill -9 `ps | grep inject | awk ' { print $1 } ' `
+	killall -9 inject
+	
+}

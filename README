@@ -17,7 +17,7 @@ Developers: Hrushikesh Mehendale, Ashwin Paranjpe, Santosh Vempala
 Georgia Institute of Technology, Atlanta, USA
 */
 
-Last updated - Oct 2010
+Last updated - 27 Jun 2011
 
 ----------------------
 1. Description of code
@@ -28,6 +28,7 @@ Last updated - Oct 2010
 		--> firewall/     - this directory contains iptables scripts for automated gateway configuration
                 --> src/          - this directory contains the code for LifeNet Kernel Module
 		--> scripts/      - this directory contains executable scripts that are used to start and stop LifeNet and its applications
+		--> openwrt/      - this directory contains the source and configuration files required for compilation on and installation on OpenWRT platform
 		--> configure     - this executable script is used for configuring LifeNet before compilation and installation
                 --> compile       - this executable script is used for compiling LifeNet after configuration and before installation
                 --> install       - this executable script is used to install LifeNet after configuration and compilation
@@ -96,4 +97,11 @@ a. LifeNet requires the Wifi network adapters to function in ad-hoc mode. It may
 - iwl family like iwl3945
 - madwifi
 
-b. LifeNet does not support 64-bit operating systems. Support for the same will be available in subsequent releases. 
+--------------
+5. ToDo
+--------------
+
+1. DisplayGnst bug removal
+2. Removal of state entries from sniffer
+3. Cleaning up of the starting sequence on laptops
+4. Cleanup of debug messages both from sniffer and injector

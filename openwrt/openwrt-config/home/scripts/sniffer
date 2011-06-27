@@ -1,0 +1,16 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2010 mymanet.org
+START=50
+
+start() {
+
+	/usr/sbin/sniff ath0 5 0 1 `cat /home/scripts/fwd_threshold` &
+	
+}
+
+stop() {
+
+	kill -9 `ps | grep sniff | awk ' { print $1 } ' `
+	killall -9 sniff
+	
+}

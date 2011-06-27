@@ -26,9 +26,9 @@ Georgia Institute of Technology, Atlanta, USA
 
 #define ETH_P_NEWFORMAT 0x3333                  /*Manifold Packet Type*/
 #if MYMANET_STORE_PATH
-#define MANIFOLD_HEADER_SIZE 47			/*Size of Manifold Header contents*/
+#define MANIFOLD_HEADER_SIZE 44			/*Size of Manifold Header contents*/
 #else
-#define MANIFOLD_HEADER_SIZE 29			/*Size of Manifold Header contents*/
+#define MANIFOLD_HEADER_SIZE 26			/*Size of Manifold Header contents*/
 #endif
 #define MAX_HOPS 4				/*This will be entered in every new Manifold packet*/
 #define ETHERNET_HEADER_SIZE 14
@@ -39,6 +39,15 @@ Georgia Institute of Technology, Atlanta, USA
 
 #define DEBUG 0
 
+#define RTX_CNT 7
+#define MAX_USABLE_VD 255
+#define OUT_OF_ORDER_WINDOW 100000		/* 100 msec */
+
+#define NEW 1
+#define OLD 2
+#define DUPLICATE 0
+#define OUT_OF_ORDER 3
+
 int mymanet_alpha = 100;
 int mymanet_beta = 80;
 char *device_name=""; 	              		/*Name of the interface to be used [NOT Optional]*/
@@ -48,14 +57,11 @@ struct net_device *d=NULL;                      /*Main DEVICE structure for this
 /*Manifold Routing is Controlled using /proc/wdl : start and stop commands*/
 int global_manifold_disable=0;           /* 1 : Manifold Routing OFF     0: Manifold Routing ON*/
 
-/*Counters for Packet Statistics*/
-int global_transmitted_count=0;          /*Count of number of packets transmitted through this module*/
-int global_recieved_count=0;             /*Count of number of packets received through this module*/
-int g_manifold_recieved_count=0;         /*Count of number of Manifold packets received through this module*/
-int g_manifold_transmitted_count=0;      /*Count of number of Manifold packets transmitted through this module*/
 int g_manifold_session_transmitted_count=0;      /*Count of number of Manifold packets transmitted through this module in this session*/
 int g_manifold_last_session_transmitted_count=0;      /*Count of number of Manifold packets transmitted through this module in the previous session*/
 
+int g_per_session_dup_cnt = 0;
+int g_last_per_session_dup_cnt = 0;
 
 uint8_t g_broadcast_mac[6]={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 

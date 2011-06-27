@@ -1,0 +1,26 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006 OpenWrt.org
+
+START=98
+start() {
+
+	wifi_up=`ifconfig wifi0 | wc -l`
+	
+	while [ "$wifi_up" != "8" ]; do
+		wifi_up=`ifconfig wifi0 | wc -l`
+		sleep 5
+	done
+
+	/home/scripts/mymanet start
+	/home/scripts/injector start
+	/home/scripts/sniffer start
+	
+}
+
+stop() {
+
+	/home/scripts/mymanet stop
+	/home/scripts/injector stop
+	/home/scripts/sniffer stop
+
+}

@@ -1,0 +1,27 @@
+all: inject sniff
+
+inject: inject.o 
+
+	$(CC) -o inject inject.o
+
+sniff: sniff.o manifold_routing.o
+
+	$(CC) -o sniff sniff.o manifold_routing.o
+
+inject.o: inject.c
+
+	$(CC) $(CFLAGS) -c -o inject.o inject.c
+
+sniff.o: sniff.c
+
+	$(CC) $(CFLAGS) -c -o sniff.o sniff.c
+
+manifold_routing.o: manifold_routing.c
+
+	$(CC) $(CFLAGS) -c -o manifold_routing.o manifold_routing.c
+
+#all: inject sniff
+#inject: inject.c
+#	$(CC) $(LDFLAGS) -o inject inject.c
+#sniff: sniff.c
+#	$(CC) -o sniff sniff.c manifold_routing.c

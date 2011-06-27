@@ -1,0 +1,11 @@
+#!/bin/sh
+# Copyright (C) 2010 mymanet.org
+
+ping_flag=`cat /home/scripts/ping_config | wc -l`
+
+if [ "$ping_flag" == "1" ]; then
+	killall ping
+	ping `cat /home/scripts/ping_config` &
+else
+	killall ping
+fi

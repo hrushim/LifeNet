@@ -1,0 +1,10 @@
+config wifi-device  wifi0
+	option type     atheros
+	option channel  1
+
+config wifi-iface
+	option device	wifi0
+#	option network	lan
+	option mode	adhoc
+	option ssid	lifenet
+	option encryption none

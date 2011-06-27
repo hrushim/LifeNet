@@ -1,0 +1,22 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2010 mymanet.org
+START=50
+
+start() {
+
+	ALPHA=`cat /home/scripts/alpha`
+	BETA=`cat /home/scripts/beta`
+	ifconfig ath0 up
+	ifconfig ath0 `cat /home/scripts/ip_add`
+	insmod manifold device_name=ath0 mymanet_alpha=$ALPHA mymanet_beta=$BETA
+#	iwconfig ath0 ap AA:BB:CC:DD:EE:FF
+
+}
+
+stop() {
+
+	rmmod manifold
+	ifconfig ath0 down
+#	rm -rf /etc/config/mymanet/*
+	
+}

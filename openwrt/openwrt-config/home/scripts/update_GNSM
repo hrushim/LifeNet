@@ -1,0 +1,28 @@
+#!/bin/sh
+# Copyright (C) 2010 mymanet.org
+
+m_running=`lsmod | grep manifold | wc -l`
+
+if [ "$m_running" == "1" ]; then
+
+	s_running=`pidof sniff`
+	if [ "$s_running" == "" ]; then
+		
+		/home/scripts/sniffer start
+	
+	fi
+	
+	i_running=`pidof inject`
+	if [ "$i_running" == "" ]; then
+	
+		/home/scripts/injector start
+	
+	fi
+	
+else
+
+	/home/scripts/injector stop
+	/home/scripts/sniffer stop
+	
+
+fi
