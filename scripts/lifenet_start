@@ -238,7 +238,7 @@ echo -e -n "Starting Sniffer..."
 sleep 2
 echo -e "\nLifeNet is ON now!!"
 echo -e "\nClose the Sniffer window to exit LifeNet gracefully!"
-/bin/sniff $WIFI_IF $MYMANET_TOLERANCE 0 $MYMANET_IS_EMB_DEV $MYMANET_FWD_THRESHOLD
+xterm -e /bin/sniff $WIFI_IF $MYMANET_TOLERANCE 0 $MYMANET_IS_EMB_DEV $MYMANET_FWD_THRESHOLD
 
 echo -e "\n============ LifeNet_Beta 1.0 unload utility ============"
 

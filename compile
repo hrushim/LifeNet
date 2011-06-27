@@ -122,30 +122,42 @@ if [ "$MYMANET_STORE_PATH" -eq "1"  ]; then
 fi
 
 cd applications/DisplayGnst
+make clean
 make
 cd ./../../
 
 cd applications/ArpUpdater
+make clean
 make
 cd ./../../
 
 cd applications/Inject
+make clean
 make
 cd ./../../
 
 cd applications/Sniff
+make clean
 make
 cd ../../
 
 cd applications/LifeNetFTP
+ant clean
 ant jar
 cd ../../
 
 cd applications/MyMANET-chat
+ant clean
 ant jar
 cd ../../
 
 cd applications/NetVisualize
+ant clean
+ant jar
+cd ../../
+
+cd applications/LifeNetSMS
+ant clean
 ant jar
 cd ../../
 

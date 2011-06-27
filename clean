@@ -134,21 +134,25 @@ cd ./../../
 
 cd applications/DisplayGnst
 make clean
+rm -rf dist/ build/
 #make
 cd ./../../
 
 cd applications/ArpUpdater
 make clean
+rm -rf dist/ build/
 #make
 cd ./../../
 
 cd applications/Inject
 make clean
+rm -rf dist/ build/
 #make
 cd ./../../
 
 cd applications/Sniff
 make clean
+rm -rf dist/ build/
 #make
 cd ../../
 

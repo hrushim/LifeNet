@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
     /*Bind raw socket to interface*/
     bind_raw_socket_to_interface(argv[1], raw_sock, MANIFOLD_UPDATE_TYPE);
 
-    while (check_manifold_lkm_status() == 1) {
+    while (check_manifold_lkm_status()==1) {
 
         sleep(atoi(argv[4]));
 
