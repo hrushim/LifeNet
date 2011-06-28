@@ -23,7 +23,7 @@ public class MessageThread extends Thread {
 	}
 
 	public void run() {
-		System.out.println("Inside Listen thread on port " + LifeNet.MSG_SRC_DATA_PORT);
+//		System.out.println("Inside Listen thread on port " + LifeNet.MSG_SRC_DATA_PORT);
 		System.out.flush();
 		while (RUN_FLAG) {
 			ChatMessage message = null;
@@ -48,20 +48,20 @@ public class MessageThread extends Thread {
 					{
 						if (new Long(message.seq) > (Long) seqNumHash.get(message.srcName)) 
 						{
-							System.out.println("Check 0");
+						//	System.out.println("Check 0");
 							System.out.flush();
 							seqNumHash.remove(message.srcName);
-							System.out.println("Check 1");
+						//	System.out.println("Check 1");
 							System.out.flush();
 							seqNumHash.put(message.srcName, new Long(
 									message.seq));
-							System.out.println("Check 2");
+						//	System.out.println("Check 2");
 							System.out.flush();
 							String messgSource = message.srcName;
 							message.type = LifeNet.MSG_TYPE_ACK;
 							message.srcName = LifeNetApi.getMyName();
 							message.rxTime = Calendar.getInstance().getTime();
-							System.out.println("Check 3");
+						//	System.out.println("Check 3");
 							System.out.flush();
 							UdpTx.reply(LifeNetApi.getIpFromName(messgSource),
 									message);
@@ -70,7 +70,7 @@ public class MessageThread extends Thread {
 						} 
 						else 
 						{
-							System.out.println("Dropping packet" + " Seq: " + String.valueOf(message.seq));
+						//	System.out.println("Dropping packet" + " Seq: " + String.valueOf(message.seq));
 							System.out.flush();
 						}
 					} 

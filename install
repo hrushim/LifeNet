@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 clear
 INSTALL_DIR=`cat config/install_path.conf` 
 

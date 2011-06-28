@@ -40,7 +40,7 @@ int read_and_pack_rxstats(char *buf) {
 
     fptr = fopen(RX_FILE_NAME, "r");
     if (fptr == NULL) {
-        printf("\n%s file could not be read\n", RX_FILE_NAME);
+//        printf("\n%s file could not be read. Exiting Inject because the kernel module was removed.\n", RX_FILE_NAME);
         exit(1);
     }
 
@@ -151,7 +151,7 @@ int read_and_pack_txstats(char *buf) {
 
     fptr = fopen(TX_FILE_NAME, "r");
     if (fptr == NULL) {
-        printf("\n %s could not be read", TX_FILE_NAME);
+       // printf("\n %s could not be read. Exiting Inject because the kernel module was removed.", TX_FILE_NAME);
         exit(1);
     }
 

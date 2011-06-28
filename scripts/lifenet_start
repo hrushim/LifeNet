@@ -99,7 +99,7 @@ sleep 1
 echo -e -n "OK"
 
 echo -e -n "\nClearing app data..."
-rm $APP_DATA_PATH/config/hosts 2>&1 $APP_DATA_PATH/config/log_install
+sudo rm $APP_DATA_PATH/config/hosts 2>&1 $APP_DATA_PATH/config/log_install
 COMMAND_OUT=`cat $APP_DATA_PATH/config/hosts | wc -l`
 if [ "$COMMAND_OUT" == "0" ]; then
 	echo -e -n "OK"
@@ -147,7 +147,7 @@ fi
 
 
 echo -e -n "Configuring $WIFI_IF in adhoc mode..."
-COMMAND_OUT=`iwconfig $WIFI_IF mode ad-hoc 2>&1 | wc -l`
+COMMAND_OUT=`sudo iwconfig $WIFI_IF mode ad-hoc 2>&1 | wc -l`
 sleep 2
 if [ "$COMMAND_OUT" == "0"  ]; then
 	echo -e -n "OK\n"
@@ -158,7 +158,7 @@ else
 fi
 
 echo -e -n "Configuring $WIFI_IF channel..."
-COMMAND_OUT=`iwconfig $WIFI_IF channel 1 2>&1 | wc -l`
+COMMAND_OUT=`sudo iwconfig $WIFI_IF channel 1 2>&1 | wc -l`
 sleep 2
 if [ "$COMMAND_OUT" == "0"  ]; then
 	echo -e -n "OK\n"
@@ -168,11 +168,11 @@ else
 	exit
 fi
 
-ifconfig $WIFI_IF up
+sudo ifconfig $WIFI_IF up
 sleep 2
 
 echo -e -n "Configuring $WIFI_IF in set ESSID..."
-COMMAND_OUT=`iwconfig $WIFI_IF ESSID lifenet 2>&1 | wc -l`
+COMMAND_OUT=`sudo iwconfig $WIFI_IF ESSID lifenet 2>&1 | wc -l`
 #COMMAND_OUT=`iwconfig $WIFI_IF ESSID hrushi 2>&1 | wc -l`
 sleep 2
 if [ "$COMMAND_OUT" == "0"  ]; then
@@ -198,7 +198,7 @@ fi
 rmmod manifold
 echo -e -n "Inserting LifeNet Kernel Module..."
 
-COMMAND_OUT=`insmod $HOME/.LifeNetData/manifold.ko device_name=$WIFI_IF mymanet_alpha=$MYMANET_ALPHA mymanet_beta=$MYMANET_BETA 2>&1 | wc -l `
+COMMAND_OUT=`sudo insmod $HOME/.LifeNetData/manifold.ko device_name=$WIFI_IF mymanet_alpha=$MYMANET_ALPHA mymanet_beta=$MYMANET_BETA 2>&1 | wc -l `
 
 sleep 2
 if [ "$COMMAND_OUT" == "0"  ]; then
@@ -219,31 +219,25 @@ if [ "$MYMANET_STORE_PATH" == "1"  ]; then
 fi
 
 echo -e -n "\nStarting Injector..."
-xterm -e /bin/inject $WIFI_IF $WIFI_IP $NODE_NAME $MYMANET_HB_INTERVAL &
-sleep 2
+sudo /bin/inject $WIFI_IF $WIFI_IP $NODE_NAME $MYMANET_HB_INTERVAL & > /tmp/injectlog
+sleep 5
 echo -e -n "OK\n"
-
-echo -e -n "\nStarting ARP Updater..."
-#/bin/arpupdater &
-sleep 2
-echo -e -n "OK\n"
-
-echo -e -n "\nStarting DisplayGnst..."
-xterm -e /bin/displaygnst &
-sleep 2
-echo -e -n "OK\n"
-
 
 echo -e -n "Starting Sniffer..."
+sudo /bin/sniff $WIFI_IF $MYMANET_TOLERANCE 0 $MYMANET_IS_EMB_DEV $MYMANET_FWD_THRESHOLD & > /tmp/snifflog
 sleep 2
 echo -e "\nLifeNet is ON now!!"
-echo -e "\nClose the Sniffer window to exit LifeNet gracefully!"
-xterm -e /bin/sniff $WIFI_IF $MYMANET_TOLERANCE 0 $MYMANET_IS_EMB_DEV $MYMANET_FWD_THRESHOLD
+
+echo -e -n "\nStarting the Messaging Module..."
+echo -e "\nPress [Ctrl-C] to exit LifeNet gracefully!"
+/usr/sbin/lifenet_chat 
+sleep 2
+echo -e -n "OK\n"
 
 echo -e "\n============ LifeNet_Beta 1.0 unload utility ============"
 
 echo -e -n "\nRemoving LifeNet Kernel Module"
-COMMAND_OUT=`rmmod manifold 2>&1 | wc -l`
+COMMAND_OUT=`sudo rmmod manifold 2>&1 | wc -l`
 sleep 2
 echo -e -n "OK"
 
@@ -251,5 +245,5 @@ sudo iwconfig $WIFI_IF ap 00:00:00:00:00:00
 
 sleep 2
 
-touch $APP_DATA_PATH/install_log
+sudo touch $APP_DATA_PATH/install_log
 echo "Done!! LifeNet has terminated gracefully."

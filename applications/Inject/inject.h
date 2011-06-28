@@ -28,7 +28,7 @@ Georgia Institute of Technology, Atlanta, USA
 #endif
 
 #define DEBUG 0
-#define PRINT_PACKET 1  //both DEBUG and PRINT_PACKET should not be 1 at the same time
+#define PRINT_PACKET 0  //both DEBUG and PRINT_PACKET should not be 1 at the same time
 #define GW_SUPPORT 0
 #define DST_ETHER_ADDR	"FF:FF:FF:FF:FF:FF"
 #define BUFFER_LEN 1024

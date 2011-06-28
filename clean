@@ -83,6 +83,10 @@ export MYMANET_STORE_PATH
 
 #echo -e "Completed\n"
 
+rm -rf ./*~
+
+rm -rf ./config/*
+
 cd src
 
 #echo -e "\nCompiling LifeNet kernel module...\n"
@@ -115,9 +119,11 @@ cd ..
 
 #if [ "$MYMANET_STORE_PATH" -eq "1"  ]; then
 
-#	cd applications/PathTraceLogger
-#	make
-#	cd ./../../
+	cd applications/PathTraceLogger
+	make clean
+	rm -rf dist/ build/
+	#make
+	cd ./../../
 
 #fi
 

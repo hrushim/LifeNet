@@ -35,6 +35,7 @@ Georgia Institute of Technology, Atlanta, USA
 
 void write_packet_traces() {
 
+#if LOG_STATS
     FILE *fp = NULL;
     FILE *fptr_wdl = NULL;
     char filename[100];
@@ -95,7 +96,7 @@ void write_packet_traces() {
 
     fclose(fp);
      */
-
+#endif
 }
 
 void write_gnst() {
@@ -176,6 +177,7 @@ void write_hosts() {
 }
 
 void write_refined_stats() {
+#if LOG_STATS
     int i, j;
     char filename[500];
 
@@ -196,5 +198,5 @@ void write_refined_stats() {
 #endif
 
     system(filename);
-
+#endif
 }
