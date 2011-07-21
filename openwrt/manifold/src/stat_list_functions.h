@@ -20,7 +20,7 @@ Georgia Institute of Technology, Atlanta, USA
 #ifndef STAT_LIST_FUNCTIONS_H
 #define STAT_LIST_FUNCTIONS_H
 
-#define STATLIST_EXPIRY_INTERVAL 30
+#define STATLIST_EXPIRY_INTERVAL 90
 
 struct stat_list{
         int id;

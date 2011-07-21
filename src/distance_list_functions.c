@@ -38,6 +38,8 @@ void remove_distance_entry(uint8_t mac[6])
 {
 	struct distance_list *tmp=NULL;
 
+	printk(KERN_ALERT"\nRemoving distance entry %x:%x", (uint8_t)mac[4], (uint8_t)mac[5]);
+
 	if(distance_head == NULL){
 		return;
 	}
@@ -50,24 +52,27 @@ void remove_distance_entry(uint8_t mac[6])
 			if(tmp->prev==NULL && tmp->next==NULL)
 			{ //If it is the only element in the list
 			  kfree(tmp);
-			  distance_head = NULL;
+			  distance_head = NULL;g_distance_list_count--;
 			}
 			if(tmp->prev!=NULL && tmp->next==NULL)
 			{ // Last element
 			  (tmp->prev)->next = NULL;
 			  kfree(tmp);
+			  g_distance_list_count--;
 			}
 			if(tmp->prev==NULL && tmp->next!=NULL)
 			{ // First element
 			  (tmp->next)->prev = NULL;
 			  distance_head = tmp->next;
 			  kfree(tmp);
+			  g_distance_list_count--;
 			}
 			if(tmp->prev!=NULL && tmp->next!=NULL)
 			{ //middle element i.e. not first and not last
 			  (tmp->prev)->next = tmp->next;
 			  (tmp->next)->prev = tmp->prev;			  
 			  kfree(tmp);
+			  g_distance_list_count--;
 			}
 			return;
 		}

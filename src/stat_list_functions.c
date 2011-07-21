@@ -86,12 +86,14 @@ int collect_garbage_entries(int dummy_to_avoid_compile_warning)
 					remove_distance_entry(tmp->mac);
 					kfree(tmp);
 					stat_head = NULL;
+					g_stat_list_count--;
 				}
 				else if(tmp->prev!=NULL && tmp->next==NULL)
 				{ // Last element
 					remove_distance_entry(tmp->mac);
 					(tmp->prev)->next = NULL;
 					kfree(tmp);
+					g_stat_list_count--;
 
 				}
 				else if(tmp->prev==NULL && tmp->next!=NULL)
@@ -100,6 +102,7 @@ int collect_garbage_entries(int dummy_to_avoid_compile_warning)
 					(tmp->next)->prev = NULL;
 					stat_head = tmp->next;
 					kfree(tmp);
+					g_stat_list_count--;
 
 				}
 				else if(tmp->prev!=NULL && tmp->next!=NULL)
@@ -108,6 +111,7 @@ int collect_garbage_entries(int dummy_to_avoid_compile_warning)
 					(tmp->prev)->next = tmp->next;
 					(tmp->next)->prev = tmp->prev;			  
 					kfree(tmp);
+					g_stat_list_count--;
 
 				}
 				return 0;

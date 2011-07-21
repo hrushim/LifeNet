@@ -100,7 +100,6 @@ int main(int argc, char **argv) {
     /*Start Sniffing*/
     while (check_manifold_lkm_status() == 1) {
 
-
         fd_set fds;
         len = 0;
         retval = 0;

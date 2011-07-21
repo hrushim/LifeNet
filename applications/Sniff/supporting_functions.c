@@ -407,10 +407,12 @@ int update_gstats_with_tx_stats(uint8_t mac1[6], uint8_t mac2[6], uint32_t num_t
     uint8_t bcast_mac[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
     if (memcmp(mac2, bcast_mac, 6) == 0) {
-        g_bcast_stats[index1].bcast_session = tx_session;
-        g_bcast_stats[index1].num_bcast = num_tx;
-        g_bcast_stats[index1].fwd_session = fwd_session;
-        g_bcast_stats[index1].num_fwd = num_fwd;
+	if(index1 >= 0) {
+	    g_bcast_stats[index1].bcast_session = tx_session;
+	    g_bcast_stats[index1].num_bcast = num_tx;
+	    g_bcast_stats[index1].fwd_session = fwd_session;
+	    g_bcast_stats[index1].num_fwd = num_fwd;
+	}
     } else {
         if (index1 >= 0 && index2 >= 0) {
             g_stats[index1][index2].num_tx = num_tx;
@@ -419,28 +421,6 @@ int update_gstats_with_tx_stats(uint8_t mac1[6], uint8_t mac2[6], uint32_t num_t
             g_stats[index1][index2].fwd_session = fwd_session;
         }
     }
-
-    /*
-    if (memcmp(mac2, bcast_mac, 6) == 0) {
-        if (tx_session >= g_bcast_stats[index1].bcast_session || (g_bcast_stats[index1].bcast_session - tx_session) > 1) {
-            g_bcast_stats[index1].bcast_session = tx_session;
-            g_bcast_stats[index1].num_bcast = num_tx;
-        }
-        if (fwd_session >= g_bcast_stats[index1].fwd_session || (g_bcast_stats[index1].fwd_session - fwd_session) > 1) {
-            g_bcast_stats[index1].fwd_session = fwd_session;
-            g_bcast_stats[index1].num_fwd = num_fwd;
-        }
-    } else {
-        if (tx_session >= g_stats[index1][index2].tx_session || (g_stats[index1][index2].tx_session - tx_session) > 1) {
-            g_stats[index1][index2].num_tx = num_tx;
-            g_stats[index1][index2].tx_session = tx_session;
-        }
-        if (fwd_session >= g_stats[index1][index2].fwd_session || (g_stats[index1][index2].fwd_session - fwd_session) > 1) {
-            g_stats[index1][index2].num_fwd = num_fwd;
-            g_stats[index1][index2].fwd_session = fwd_session;
-        }
-    }
-     */
 
 }
 
@@ -453,9 +433,9 @@ int update_gstats_with_rx_stats(uint8_t mac1[6], uint8_t mac2[6], uint32_t num_r
     struct timeval curr_time;
     gettimeofday(&curr_time, NULL);
 
-    if ((hostlist[index1].timestamp - curr_time.tv_sec) < 30) {
+    if (index1 >= 0 && index2 >= 0 && (hostlist[index1].timestamp - curr_time.tv_sec) < 30) {
 
-        if (memcmp(mac2, bcast_mac, 6) != 0) {
+        if (memcmp(mac2, bcast_mac, 6) != 0 ) {
             g_stats[index2][index1].num_rx = num_rx;
             g_stats[index2][index1].num_bcast_rx = num_bcast_rx;
             g_stats[index2][index1].rx_session = rx_session;
@@ -589,7 +569,6 @@ int extract_host_rx_info(unsigned char *packet, unsigned char *originator_mac, i
         printf("[ %x %x %x %x ]", (uint8_t)*(packet - 4), (uint8_t)*(packet - 3), (uint8_t)*(packet - 2), (uint8_t)*(packet - 1));
         fflush(stdout);
 #endif
-
         update_gstats_with_rx_stats(originator_mac, mac_temp, ntohl(num_rx_nbyte_order), ntohl(num_bcast_nbyte_order), ntohl(rx_session_nbyte_order));
     }
 
