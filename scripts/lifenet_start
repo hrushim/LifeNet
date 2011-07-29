@@ -218,6 +218,12 @@ if [ "$MYMANET_STORE_PATH" == "1"  ]; then
 
 fi
 
+echo -e -n "\nStarting Commandlistener..."
+sudo /bin/commandlistener &
+
+echo -e -n "\nStarting ARP Updater..."
+sudo /bin/arpupdater &
+
 echo -e -n "\nStarting Injector..."
 sudo /bin/inject $WIFI_IF $WIFI_IP $NODE_NAME $MYMANET_HB_INTERVAL & > /tmp/injectlog
 sleep 5

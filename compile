@@ -121,6 +121,11 @@ if [ "$MYMANET_STORE_PATH" -eq "1"  ]; then
 
 fi
 
+cd applications/CommandListener
+make clean
+make
+cd ./../../
+
 cd applications/DisplayGnst
 make clean
 make

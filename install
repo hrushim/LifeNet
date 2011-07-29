@@ -14,6 +14,7 @@ mkdir $HOME/.LifeNetData 1> /tmp/install_log1
 #chmod 744 scripts/lifenet_start
 #chmod 744 scripts/lifenet_stop
 
+cp applications/CommandListener/dist/Debug/GNU-Linux-x86/commandlistener /bin
 cp applications/Inject/dist/Debug/GNU-Linux-x86/inject /bin
 cp applications/Sniff/dist/Debug/GNU-Linux-x86/sniff /bin
 cp applications/PathTraceLogger/dist/Debug/GNU-Linux-x86/pathtracelogger /bin

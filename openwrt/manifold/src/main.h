@@ -37,7 +37,7 @@ Georgia Institute of Technology, Atlanta, USA
 
 #define DEBUG 0
 
-#define RTX_CNT 7
+#define RTX_CNT 10
 #define MAX_USABLE_VD 255
 #define OUT_OF_ORDER_WINDOW 100000		/* 100 msec */
 

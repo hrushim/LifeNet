@@ -133,6 +133,12 @@ cd ..
 #make
 #cd ./../../
 
+cd applications/CommandListener
+make clean
+rm -rf dist/ build
+#ant jar
+cd ./../../
+
 cd applications/LifeNetSMS
 ant clean
 #ant jar

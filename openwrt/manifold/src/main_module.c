@@ -150,7 +150,7 @@ int wdl_modify_and_transmit(struct sk_buff *skb, struct net_device *netdev, uint
 	if(netdev->flags & IFF_UP)
 	{
 /*
-		prob_fwd = ((255 - mymanethdr.distance) * RTX_CNT)/MAX_USABLE_VD;
+		prob_fwd = ((mymanethdr.distance) * RTX_CNT)/MAX_USABLE_VD;
 		
 		if(compare_mac_address(mymanethdr.final_destination, g_broadcast_mac)==0)
 		{
@@ -259,7 +259,7 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 
 	int orig_header_room=0;
 
-	//If the packet cannot be processed due to some key fields being null, free the socket buffer and return
+	//If the packet cannot be prcessed due to some key fields being null, free the socket buffer and return
 	if((skb == NULL) || (netdev == NULL) || (ptype == NULL) || (orig_dev == NULL)){
 		if(skb != NULL){
 			kfree_skb(skb);
@@ -342,29 +342,34 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 		old_timestamp = 0;
 		old_timestamp_frac = 0;
 
-		/*Get the timestamp of this final destination*/
+		
+		//Get the timestamp of this final destination
 		old_timestamp = search_for_timestamp(mymanethdr.original_source);
 		old_timestamp_frac = search_for_timestamp_frac(mymanethdr.original_source);
+		/*
 		if((old_timestamp == 0)){
-			/*This mac entry does not exist. Add it.*/	
+			//This mac entry does not exist. Add it.
 			add_or_update_timestamp_entry(mymanethdr.original_source, mymanethdr.timestamp, mymanethdr.timestamp_frac);
 			netif_rx(skb);
 		}
 		else if(difftime(&old_timestamp, &old_timestamp_frac, &mymanethdr.timestamp, &mymanethdr.timestamp_frac)==NEW || difftime(&old_timestamp, &old_timestamp_frac, &mymanethdr.timestamp, &mymanethdr.timestamp_frac)==OUT_OF_ORDER){		
-			/*This is a NEW packet from an existing mac. Update the entry*/
+			//This is a NEW packet from an existing mac. Update the entry
 			add_or_update_timestamp_entry(mymanethdr.original_source, mymanethdr.timestamp, mymanethdr.timestamp_frac);
 			netif_rx(skb);
 		}
 		else{
-			/*This is neither a new mac entry, nor a new packet from an existing mac entry. 
-			Possibly a duplicate packet. Do not update our timestamps.*/
-			/*Do not forward duplicate packets to the higher layers*/
+			//This is neither a new mac entry, nor a new packet from an existing mac entry. 
+			//Possibly a duplicate packet. Do not update our timestamps.
+			//Do not forward duplicate packets to the higher layers
 			g_per_session_dup_cnt++;
 			if(skb != NULL){
 				kfree_skb(skb);
 			}
 		}
 
+		return 0;
+		*/
+		netif_rx(skb);
 		return 0;
 	}
 	if ((skb->pkt_type == PACKET_BROADCAST) || (skb->pkt_type == PACKET_OTHERHOST)) {
