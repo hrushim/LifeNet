@@ -45,8 +45,8 @@ void parse_ethernet_packet(unsigned char *packet, int len, uint8_t gw_status) {
     uint32_t tx_pkts_nbyte_order = 0;
     uint32_t tx_session_nbyte_order = 0;
 
-    int is_a_gateway = 0; /*This field indicates whether the current heart-beat packet has originated from a node that is a GW.*/
-    int num_dns_ip = 0;
+    uint8_t is_a_gateway = 0; /*This field indicates whether the current heart-beat packet has originated from a node that is a GW.*/
+    uint8_t num_dns_ip = 0;
 
     /*Check basic packet size: Packet has to contain SRC_MAC (1 byte X 6), IP Address (32 bits), Node_name (MAX_NODE_NAME_SIZE), IS_A_GW flag (1 byte), #tx_packets (32 bits), #session_id (32 bits) at minimum*/
     if (len < (sizeof (struct ethhdr) + (sizeof (uint8_t) * 6) + MAX_NODE_NAME_SIZE + 1 + (sizeof (uint32_t) * 3))) {

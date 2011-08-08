@@ -20,9 +20,7 @@ Georgia Institute of Technology, Atlanta, USA
 #ifndef MAIN_H
 #define MAIN_H
 
-#ifndef MYMANET_STORE_PATH
-#define MYMANET_STORE_PATH 0
-#endif
+#include "platform_dep_flags.h"
 
 #define ETH_P_NEWFORMAT 0x3333                  /*Manifold Packet Type*/
 #if MYMANET_STORE_PATH

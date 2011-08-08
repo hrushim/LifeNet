@@ -28,6 +28,7 @@ Georgia Institute of Technology, Atlanta, USA
 #include<linux/string.h>
 #include<linux/proc_fs.h>
 
+#include "platform_dep_flags.h"
 #include "path_list_functions.h"
 #include "string_functions.h"
 

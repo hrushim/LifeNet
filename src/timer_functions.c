@@ -18,6 +18,7 @@ Georgia Institute of Technology, Atlanta, USA
 */
 
 #include<linux/timer.h>
+#include "platform_dep_flags.h"
 #include"stat_list_functions.h"
 #define MANIFOLD_INTERVAL 30
 

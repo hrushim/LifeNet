@@ -43,6 +43,7 @@ int get_id_from_mac(uint8_t mac[6]) {
             return i;
         i++;
     }
+
     return -1;
 }
 
@@ -191,7 +192,6 @@ int check_and_add_new_host(unsigned char srcmac[6], uint32_t ip_long, char node_
 //        hostlist[g_host_count].tx_pkts = tx_pkts;
 //        hostlist[g_host_count].tx_session = tx_session;
         hostlist[g_host_count].timestamp = 0;
-
         struct timeval curr_time;
         gettimeofday(&curr_time, NULL);
         hostlist[g_host_count].timestamp = curr_time.tv_sec;
@@ -327,7 +327,7 @@ int extract_basic_hb_info(unsigned char *packet, char *originator_mac, uint32_t 
     return 6 + 4 + 10;
 }
 
-int extract_gw_info(unsigned char *packet, int *is_a_gateway, int *num_dns_ip, char dns_ip1[16], char dns_ip2[16], char dns_ip3[16], int *len) {
+int extract_gw_info(unsigned char *packet, uint8_t *is_a_gateway, uint8_t *num_dns_ip, char dns_ip1[16], char dns_ip2[16], char dns_ip3[16], int *len) {
 
 #if PRINT_PACKET
     printf("[ %x ]", *packet);
@@ -429,7 +429,6 @@ int update_gstats_with_rx_stats(uint8_t mac1[6], uint8_t mac2[6], uint32_t num_r
     int index1 = get_id_from_mac(mac1), index2 = get_id_from_mac(mac2);
     uint8_t bcast_mac[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
-
     struct timeval curr_time;
     gettimeofday(&curr_time, NULL);
 
@@ -448,15 +447,6 @@ int update_gstats_with_rx_stats(uint8_t mac1[6], uint8_t mac2[6], uint32_t num_r
         }
     }
 
-    /*
-    if (memcmp(mac2, bcast_mac, 6) != 0) {
-
-        if (rx_session >= g_stats[index2][index1].rx_session || (g_stats[index2][index1].rx_session - rx_session) > 1) {
-            g_stats[index2][index1].num_rx = num_rx;
-            g_stats[index2][index1].rx_session = rx_session;
-        }
-    }
-     */
 
 }
 
