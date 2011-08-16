@@ -1,3 +1,3 @@
 #define MYMANET_STORE_PATH 1
 
-#define IS_EMB_DEV 0
+#define IS_EMB_DEV 1

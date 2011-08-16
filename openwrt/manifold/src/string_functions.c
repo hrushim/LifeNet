@@ -25,6 +25,8 @@ Georgia Institute of Technology, Atlanta, USA
 
 #include<linux/string.h>
 
+#include "platform_dep_flags.h"
+
 int compare_mac_address( uint8_t mac1[6], uint8_t mac2[6])
 {
         if((memcmp(mac1, mac2, 6))==0)

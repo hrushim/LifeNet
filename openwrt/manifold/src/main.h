@@ -20,7 +20,7 @@ Georgia Institute of Technology, Atlanta, USA
 #ifndef MAIN_H
 #define MAIN_H
 
-#define MYMANET_STORE_PATH 0
+#include "platform_dep_flags.h"
 
 #define ETH_P_NEWFORMAT 0x3333                  /*Manifold Packet Type*/
 #if MYMANET_STORE_PATH
@@ -51,6 +51,7 @@ int mymanet_beta = 80;
 char *device_name=""; 	              		/*Name of the interface to be used [NOT Optional]*/
 struct net_device *d=NULL;                      /*Main DEVICE structure for this interface*/
 
+int global_fwd_disable = 0;
 
 /*Manifold Routing is Controlled using /proc/wdl : start and stop commands*/
 int global_manifold_disable=0;           /* 1 : Manifold Routing OFF     0: Manifold Routing ON*/

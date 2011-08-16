@@ -51,6 +51,7 @@ int mymanet_beta = 80;
 char *device_name=""; 	              		/*Name of the interface to be used [NOT Optional]*/
 struct net_device *d=NULL;                      /*Main DEVICE structure for this interface*/
 
+int global_fwd_disable = 0;
 
 /*Manifold Routing is Controlled using /proc/wdl : start and stop commands*/
 int global_manifold_disable=0;           /* 1 : Manifold Routing OFF     0: Manifold Routing ON*/

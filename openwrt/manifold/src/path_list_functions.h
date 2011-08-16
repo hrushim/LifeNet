@@ -45,5 +45,6 @@ extern struct path_list *path_head;
 int add_or_update_path_entry(uint8_t mac0[6], uint8_t mac1[6], uint8_t mac2[6], uint8_t mac3[6], uint32_t session_id);
 int free_entire_path_list(void);
 uint8_t search_and_update_path(uint8_t mac0[6], uint8_t mac1[6], uint8_t mac2[6], uint8_t mac3[6], uint32_t session_id);
-
+int free_entire_path_list(void);
+  
 #endif  /*End of path_list_functions.h*/

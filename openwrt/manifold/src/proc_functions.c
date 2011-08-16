@@ -29,7 +29,7 @@ Georgia Institute of Technology, Atlanta, USA
 #include<linux/unistd.h>
 #include<linux/proc_fs.h>
 
-
+#include "platform_dep_flags.h"
 #include "distance_list_functions.h"
 #include "stat_list_functions.h"
 #include "path_list_functions.h"
@@ -38,6 +38,7 @@ Georgia Institute of Technology, Atlanta, USA
 /*Extern Declarations*/
 extern struct net_device *d;
 
+extern int global_fwd_disable;
 extern int global_manifold_disable;
 extern uint8_t bcast_fwd_threshold;
 
@@ -117,7 +118,9 @@ int wdl_read(char* page, char** start, off_t off, int count, int* eof, void *dat
 		
 		}
 		else {
-		
+
+			free_entire_path_list();					  
+		  
 			read_flag = 0;
 			*eof = 1;
 			return len;
@@ -136,11 +139,11 @@ int wdl_read(char* page, char** start, off_t off, int count, int* eof, void *dat
 			}
 			else {
 			  
-				len += sprintf(page+len, "PATH %x:%x:%x:%x:%x:%x %x:%x:%x:%x:%x:%x %x:%x:%x:%x:%x:%x %x:%x:%x:%x:%x:%x %d %d\n", tmp->src_mac[0], tmp->src_mac[1], 
+				len += sprintf(page+len, "PATH %x:%x:%x:%x:%x:%x %x:%x:%x:%x:%x:%x %x:%x:%x:%x:%x:%x %x:%x:%x:%x:%x:%x %d %d %d %d\n", tmp->src_mac[0], tmp->src_mac[1], 
 			  tmp->src_mac[2], tmp->src_mac[3], tmp->src_mac[4], tmp->src_mac[5], tmp->hop1_mac[0], tmp->hop1_mac[1], 
 			  tmp->hop1_mac[2], tmp->hop1_mac[3], tmp->hop1_mac[4], tmp->hop1_mac[5], tmp->hop2_mac[0], tmp->hop2_mac[1],
 			  tmp->hop2_mac[2], tmp->hop2_mac[3], tmp->hop2_mac[4], tmp->hop2_mac[5], tmp->hop3_mac[0], tmp->hop3_mac[1],
-			  tmp->hop3_mac[2], tmp->hop3_mac[3], tmp->hop3_mac[4], tmp->hop3_mac[5], tmp->prev_num_packets, tmp->prev_session_id);
+			  tmp->hop3_mac[2], tmp->hop3_mac[3], tmp->hop3_mac[4], tmp->hop3_mac[5], tmp->prev_num_packets, tmp->prev_session_id, tmp->curr_num_packets, tmp->curr_session_id);
 			  
 			}
 			tmp = tmp->next;				    
@@ -155,7 +158,9 @@ int wdl_read(char* page, char** start, off_t off, int count, int* eof, void *dat
 		
 		}
 		else {
-
+		  
+			free_entire_path_list();			
+		  
 			read_flag = 0;
 			*eof = 1;
 			return len;
@@ -269,6 +274,12 @@ static int handle_commands(char command[COMMAND_LENGTH], char arg1[ARGUMENT_LENG
 			bcast_fwd_threshold = arg1[1] - 0x30;
 			bcast_fwd_threshold += (arg1[0] - 0x30) * 10;
 		}
+	}
+	if(strncmp(command, "toggle_fwding", strlen("toggle_fwding"))==0){
+	  if(global_fwd_disable == 1)
+	    global_fwd_disable = 0;
+	  else
+	    global_fwd_disable = 1;
 	}
 	return 0;
 } 

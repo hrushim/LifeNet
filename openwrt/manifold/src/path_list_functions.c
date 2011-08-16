@@ -28,6 +28,7 @@ Georgia Institute of Technology, Atlanta, USA
 #include<linux/string.h>
 #include<linux/proc_fs.h>
 
+#include "platform_dep_flags.h"
 #include "path_list_functions.h"
 #include "string_functions.h"
 
@@ -160,4 +161,29 @@ uint8_t search_and_update_path(uint8_t mac0[6], uint8_t mac1[6], uint8_t mac2[6]
 	
 	return 0;
   
+}
+
+int free_entire_path_list(void){
+  
+	struct path_list *tmp=NULL, *tmp2=NULL;
+
+	printk(KERN_ALERT"\nFree : Path list \n");
+	
+        if(path_head == NULL){
+                printk(KERN_ALERT"\nPath list is already empty\n");
+                return 0;
+        }
+
+        tmp = path_head;
+        while(tmp != NULL){
+                tmp2 = tmp->next;
+                kfree(tmp);
+                g_path_list_count--;
+                tmp = tmp2;
+        }
+
+	path_head = NULL;
+        printk(KERN_ALERT"\nFree : Path list is NOW empty\n");
+        return 0;
+
 }

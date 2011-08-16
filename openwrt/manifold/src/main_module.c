@@ -52,6 +52,7 @@ Georgia Institute of Technology, Atlanta, USA
 #include<linux/timer.h>
 #include<linux/time.h>
 
+#include "platform_dep_flags.h"
 #include "main.h"
 #include "string_functions.h"
 #include "proc_functions.h"
@@ -335,14 +336,17 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 		add_or_update_stat_entry(mymanethdr.original_source, 0, mymanethdr.session_id, mymanethdr.final_destination);
 
 #if MYMANET_STORE_PATH
-		add_or_update_path_entry(mymanethdr.original_source, mymanethdr.hop1_mac, mymanethdr.hop2_mac, mymanethdr.hop3_mac, mymanethdr.session_id);
+
+		#if IS_EMB_DEV
+		#else
+			add_or_update_path_entry(mymanethdr.original_source, mymanethdr.hop1_mac, mymanethdr.hop2_mac, mymanethdr.hop3_mac, mymanethdr.session_id);
+		#endif		
 #endif
 
 		/*Initialize old timestamp*/
 		old_timestamp = 0;
 		old_timestamp_frac = 0;
 
-		
 		//Get the timestamp of this final destination
 		old_timestamp = search_for_timestamp(mymanethdr.original_source);
 		old_timestamp_frac = search_for_timestamp_frac(mymanethdr.original_source);
@@ -401,7 +405,7 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 		/*Reduce the Number of Remaining Hops for this packet*/
 		mymanethdr.hops_remaining = mymanethdr.hops_remaining - 1;
 
-		if((!global_manifold_disable) && (distance_from_me != 0) && (mymanethdr.hops_remaining != 0)
+		if(!(global_fwd_disable) && (!global_manifold_disable) && (distance_from_me != 0) && (mymanethdr.hops_remaining != 0)
 				&& (memcmp(mymanethdr.final_destination, netdev->dev_addr, 6) != 0)) { 
 			if(routing_decision(distance_from_me, mymanethdr.orig_distance, mymanethdr.distance, old_timestamp, old_timestamp_frac, mymanethdr.timestamp, mymanethdr.timestamp_frac) || 
 				(distance_from_me == 0xFF)) {
@@ -451,7 +455,11 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 		add_or_update_stat_entry(mymanethdr.original_source, 0, mymanethdr.session_id, mymanethdr.final_destination);
 
 #if MYMANET_STORE_PATH
-		add_or_update_path_entry(mymanethdr.original_source, mymanethdr.hop1_mac, mymanethdr.hop2_mac, mymanethdr.hop3_mac, mymanethdr.session_id);
+
+		#if IS_EMB_DEV
+		#else
+			add_or_update_path_entry(mymanethdr.original_source, mymanethdr.hop1_mac, mymanethdr.hop2_mac, mymanethdr.hop3_mac, mymanethdr.session_id);
+		#endif		
 #endif
 
 		netif_rx(skb);
