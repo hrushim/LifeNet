@@ -113,7 +113,7 @@ int wdl_modify_and_transmit(struct sk_buff *skb, struct net_device *netdev, uint
 
 	orig_header_room = (int)(skb->data - skb->head);
 	if(orig_header_room < (ETHERNET_HEADER_SIZE + MANIFOLD_HEADER_SIZE)){
-		printk(KERN_ALERT"\nSTRANGE : Insufficient headroom for constructing Manifold Packet\n");
+		printk(KERN_ALERT"ERROR : Insufficient headroom for constructing Manifold Packet\n");
 		kfree_skb(skb);
 		return -1;
 	}
