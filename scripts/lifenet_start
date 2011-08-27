@@ -84,6 +84,7 @@ echo "Kernel 6.3 plus? = $MYMANET_KERNEL_VERSION_6_30_PLUS"
 sleep 2
 
 echo -e "\nMake sure you have disabled the NetworkManager!\n"
+echo -e "Press any key to continue...\n"
 read KEY
 
 echo -e -n "\nGathering network configuration data..."
@@ -99,8 +100,8 @@ sleep 1
 echo -e -n "OK"
 
 echo -e -n "\nClearing app data..."
-sudo rm $APP_DATA_PATH/config/hosts 2>&1 $APP_DATA_PATH/config/log_install
-COMMAND_OUT=`cat $APP_DATA_PATH/config/hosts | wc -l`
+sudo rm $APP_DATA_PATH/config/hosts $APP_DATA_PATH/config/log_install 2>/dev/null
+COMMAND_OUT=`cat $APP_DATA_PATH/config/hosts 2>/dev/null | wc -l`
 if [ "$COMMAND_OUT" == "0" ]; then
 	echo -e -n "OK"
 else
@@ -219,7 +220,7 @@ if [ "$MYMANET_STORE_PATH" == "1"  ]; then
 fi
 
 echo -e -n "\nStarting Commandlistener..."
-&sudo /bin/commandlistener &
+sudo /bin/commandlistener &
 
 echo -e -n "\nStarting ARP Updater..."
 sudo /bin/arpupdater &

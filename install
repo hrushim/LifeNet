@@ -1,7 +1,6 @@
-#!/bin/bash
+#!/bin/sh
+exec 2> ./tmp.install.errorlog.`date`
 
-
-clear
 INSTALL_DIR=`cat config/install_path.conf` 
 
 rm -r $INSTALL_DIR 1> /tmp/install_log1

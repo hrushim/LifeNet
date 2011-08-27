@@ -1,30 +1,28 @@
-#!/bin/bash
-clear
+#!/bin/sh 
 
-# References / Acknowledgements for the Parser: http://www.unix.com/shell-programming-scripting/39734-how-parse-config-variables-external-file-shell-script.html
+exec 1> /dev/null
+exec 2> ./tmp.compile.errorlog.`date`
 
 # Function: get_config_list config_file
 # Purpose : Print the list of configs from config file
 get_config_list()
 {
-	typeset config_file=$1
+	config_file=$1
 
-	awk -F '[][]' '
-		NF==3 && $0 ~ /^\[.*\]/ { print $2 }
-	' ${config_file}
+	output=`awk -F '[][]' '	NF==3 && $0 ~ /^\[.*\]/ { print $2 }' ${config_file}`
+	echo "$output"
 }
 
 # Function : set_config_vars config_file config [var_prefix]
 # Purpose  : Set variables (optionaly prefixed by var_prefix) from config in config file
+# Credits for the Parser: http://www.unix.com/shell-programming-scripting/39734-how-parse-config-variables-external-file-shell-script.html
 set_config_vars()
 {
-	typeset config_file=$1
-	typeset config=$2
-	typeset var_prefix=$3
-	typeset config_vars
-
-	config_vars=$( 
-			awk -F= -v Config="${config}" -v Prefix="${var_prefix}" '
+	config_file=$1
+	config=$2
+	var_prefix=$3
+	config_vars=""
+	config_vars=`awk -F= -v Config="${config}" -v Prefix="${var_prefix}" '
 			BEGIN { 
 				Config = toupper(Config);
 				patternConfig = "\\[" Config "]";
@@ -34,7 +32,7 @@ set_config_vars()
 				sub(/^[[:space:]]*/, "");
 				sub(/[[:space:]]*=[[:space:]]/, "=");
 				print Prefix $0;
-			} ' ${config_file} )
+			} ' ${config_file} `
 
 	eval "${config_vars}"
 	echo Configuration parameters are : ${config_vars}
@@ -43,13 +41,13 @@ set_config_vars()
 #
 # Set variables for all config from config file
 #
-file=mymanet.conf
+file="mymanet.conf"
 
 echo -e "\n============ LifeNet_Beta 1.0 compilation ============"
 
 echo -e -n "\nReading Tolerance, Alpha and Beta parameters from the configuration file...\n\n"
-
-for cfg in $(get_config_list ${file})
+cfgs=`get_config_list $file`
+for cfg in $cfgs
 do
 	echo "--- Configuration [${cfg}] ---"
 	unset $(set | awk -F= '/^cfg_/  { print $1 }') MYMANET_
