@@ -33,6 +33,10 @@ Georgia Institute of Technology, Atlanta, USA
 #define MYMANET_KERNEL_VERSION_6_30_PLUS 0
 #endif
 
+#ifndef MYMANET_HEADER_ID
+#define MYMANET_HEADER_ID 0x3333
+#endif
+
 #include<linux/kernel.h>
 #include<linux/init.h>
 #include<linux/sched.h>
@@ -66,6 +70,9 @@ MODULE_LICENSE("GPL");
 
 
 /*Start of Manifold Module Code*/
+
+#define SET_SKB_FIELD(skb, object, size) 	\
+	memcpy(skb_push(skb, size), object, size);
 
 module_param(device_name, charp, S_IRUGO);	/*Device name can be given as a parameter to the module*/
 module_param(mymanet_alpha, int, 0);	/*Device name can be given as a parameter to the module*/
@@ -102,14 +109,9 @@ int wdl_modify_and_transmit(struct sk_buff *skb, struct net_device *netdev, uint
 {
 
 	int orig_header_room=0;
-	uint32_t sec_holder;
-	int i = 0;
-	int prob_fwd;
+	uint32_t sec_holder = 0;
 
-	uint8_t eth_type_manifold[2];
-	eth_type_manifold[0] = 0x33;
-	eth_type_manifold[1] = 0x33;
-
+	uint16_t eth_type_manifold = MYMANET_HEADER_ID;
 
 	orig_header_room = (int)(skb->data - skb->head);
 	if(orig_header_room < (ETHERNET_HEADER_SIZE + MANIFOLD_HEADER_SIZE)){
@@ -122,7 +124,6 @@ int wdl_modify_and_transmit(struct sk_buff *skb, struct net_device *netdev, uint
 	mymanethdr.timestamp = sec_holder;
 
 #if MYMANET_STORE_PATH	
-
 	if(mymanethdr.hops_remaining == 3) {
 		memcpy(mymanethdr.hop1_mac, src_mac, 6);
 	} else if (mymanethdr.hops_remaining == 2) {
@@ -130,14 +131,12 @@ int wdl_modify_and_transmit(struct sk_buff *skb, struct net_device *netdev, uint
 	} else if (mymanethdr.hops_remaining == 1) {
 		memcpy(mymanethdr.hop3_mac, src_mac, 6);	  
 	} 
-
 #endif	  
 
-	memcpy(skb_push(skb, MANIFOLD_HEADER_SIZE), &mymanethdr, MANIFOLD_HEADER_SIZE);
-
-	memcpy(skb_push(skb, 2), eth_type_manifold, 2);
-	memcpy(skb_push(skb, 6), src_mac, 6);
-	memcpy(skb_push(skb, 6), dest_mac, 6);
+	SET_SKB_FIELD(skb, &mymanethdr, MANIFOLD_HEADER_SIZE);
+	SET_SKB_FIELD(skb, &eth_type_manifold, 2);
+	SET_SKB_FIELD(skb, src_mac, 6);
+	SET_SKB_FIELD(skb, dest_mac, 6);
 
 	add_or_update_stat_entry(mymanethdr.final_destination, 2, mymanethdr.session_id, mymanethdr.final_destination);
 
@@ -150,25 +149,12 @@ int wdl_modify_and_transmit(struct sk_buff *skb, struct net_device *netdev, uint
 			
 	if(netdev->flags & IFF_UP)
 	{
-/*
-		prob_fwd = ((mymanethdr.distance) * RTX_CNT)/MAX_USABLE_VD;
-		
-		if(compare_mac_address(mymanethdr.final_destination, g_broadcast_mac)==0)
-		{
-			if(mymanethdr.distance != 255 && mymanethdr.distance!=0)
-			{
-				for(i = 0; i < prob_fwd && prob_fwd >= 0; i++)
-				{
-					dev_queue_xmit(skb_copy(skb, GFP_ATOMIC));
-				}
-			}
-			dev_queue_xmit(skb_copy(skb, GFP_ATOMIC));
-		}
-*/
 		return dev_queue_xmit(skb);
 	}
 	else{
-		printk(KERN_ALERT "\n\nDevice was DOWN !! \n\n");
+#if DEBUG
+		printk(KERN_ALERT "INFO: Device is busy.\n");
+#endif
 		return NETDEV_TX_BUSY;	
 	}
 }
@@ -202,7 +188,6 @@ uint8_t difftime(const uint32_t *old, const uint32_t *old_frac, const uint32_t *
 
 uint8_t routing_decision(uint8_t distance_from_me, uint8_t distance_from_orig_sender, uint8_t packet_distance, uint32_t old_timestamp, uint32_t old_timestamp_frac, uint32_t new_timestamp, uint32_t new_timestamp_frac)
 {
-#define DEBUG_ON_2 0
 #define DROP 0
 #define FORWARD 1
 
@@ -225,12 +210,6 @@ uint8_t routing_decision(uint8_t distance_from_me, uint8_t distance_from_orig_se
 			return FORWARD;
 		}
 	}	
-	else{ 
-		return DROP;
-	}
-#if DEBUG			
-	printk(KERN_ALERT "\nThis shouldn't be ever printed. \n");
-#endif
 	return DROP;
 }
 
@@ -278,14 +257,6 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 		return 0;
 	}
 
-/*
-	if((global_recieved_count++) == 10) {
-#if DEBUG
-		printk(KERN_ALERT "\nRECIEVED 10 pkts on device %s", d->name);
-#endif
-	}
-*/
-
 	/*Since we are at the start of the payload after Eth header, go back and fetch the info.*/
 	memcpy(dest_mac, ( (skb->data - (2 * 6)) - 2 ), 6);
 	memcpy(src_mac, ( (skb->data - 6) - 2 ), 6);
@@ -295,30 +266,15 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 	sec_holder = ntohl(mymanethdr.timestamp);
 	mymanethdr.timestamp = sec_holder;
 	
-
-/*
-	printk(KERN_ALERT"    \nReceived Session ID as %d\n", mymanethdr.session_id);
-	printk(KERN_ALERT"    Received Hops Remaining as %d\n", mymanethdr.hops_remaining);
-	printk(KERN_ALERT"    Received Distance as %d\n", mymanethdr.distance);
-	printk(KERN_ALERT"    Received Original Distance as %d\n", mymanethdr.orig_distance);
-	printk(KERN_ALERT"    Received Timestamp as %ld\n", mymanethdr.timestamp);
-	printk(KERN_ALERT"    Received Original Source MAC as %x:%x:%x:%x:%x:%x\n", mymanethdr.original_source[0], mymanethdr.original_source[1], 
-		mymanethdr.original_source[2], mymanethdr.original_source[3], mymanethdr.original_source[4], mymanethdr.original_source[5]);
-	printk(KERN_ALERT"    Received Final Dest MAC as %x:%x:%x:%x:%x:%x\n", mymanethdr.final_destination[0], mymanethdr.final_destination[1], 
-		mymanethdr.final_destination[2], mymanethdr.final_destination[3], mymanethdr.final_destination[4], mymanethdr.final_destination[5]);
-	printk(KERN_ALERT"    Received Original Type as %x:%x\n", mymanethdr.eth_type_original[0], mymanethdr.eth_type_original[1]);
-*/
-
-
 	/*Do skb_pull of MANIFOLD_HEADER_SIZE*/
 	skb_pull(skb, MANIFOLD_HEADER_SIZE);
 	/*End: Extraction of Manifold Header fields ends here*/
 
 	/*eth_type_trans will understand only the original eth_type numbers*/
 	/*Build a normal ethernet layer packet header so that eth_type_trans can synthesize it.*/
-	memcpy(skb_push(skb, 2), mymanethdr.eth_type_original, 2 );
-	memcpy(skb_push(skb, 6), mymanethdr.original_source, 6);
-	memcpy(skb_push(skb, 6), mymanethdr.final_destination, 6);
+	SET_SKB_FIELD(skb, mymanethdr.eth_type_original, 2);
+	SET_SKB_FIELD(skb, mymanethdr.original_source, 6);
+	SET_SKB_FIELD(skb, mymanethdr.final_destination, 6);
 
 	skb->pkt_type = PACKET_HOST; /* Assumed. eth_type_trans will overwrite it anyways.*/
 	/*Remember that eth_type_trans function does skb_pull of length ETH_HLEN. 
@@ -327,8 +283,11 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 	skb->protocol = eth_type_trans(skb, netdev);
 
 	/*Start of Actual Processing*/
-	/*No Need to do SKB expansion since this is a Manifold packet which has already been expanded
-	 * to have sufficient head-room*/
+
+	/*
+	 * No Need to do SKB expansion since this is a Manifold packet which has already been expanded
+	 * to have sufficient head-room
+	*/
 
 	if (skb->pkt_type == PACKET_HOST) {
 
@@ -337,42 +296,11 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 
 #if MYMANET_STORE_PATH
 
-		#if IS_EMB_DEV
-		#else
-			add_or_update_path_entry(mymanethdr.original_source, mymanethdr.hop1_mac, mymanethdr.hop2_mac, mymanethdr.hop3_mac, mymanethdr.session_id);
-		#endif		
+#if IS_EMB_DEV
+#else
+		add_or_update_path_entry(mymanethdr.original_source, mymanethdr.hop1_mac, mymanethdr.hop2_mac, mymanethdr.hop3_mac, mymanethdr.session_id);
+#endif		
 #endif
-
-		/*Initialize old timestamp*/
-		old_timestamp = 0;
-		old_timestamp_frac = 0;
-
-		//Get the timestamp of this final destination
-		old_timestamp = search_for_timestamp(mymanethdr.original_source);
-		old_timestamp_frac = search_for_timestamp_frac(mymanethdr.original_source);
-		/*
-		if((old_timestamp == 0)){
-			//This mac entry does not exist. Add it.
-			add_or_update_timestamp_entry(mymanethdr.original_source, mymanethdr.timestamp, mymanethdr.timestamp_frac);
-			netif_rx(skb);
-		}
-		else if(difftime(&old_timestamp, &old_timestamp_frac, &mymanethdr.timestamp, &mymanethdr.timestamp_frac)==NEW || difftime(&old_timestamp, &old_timestamp_frac, &mymanethdr.timestamp, &mymanethdr.timestamp_frac)==OUT_OF_ORDER){		
-			//This is a NEW packet from an existing mac. Update the entry
-			add_or_update_timestamp_entry(mymanethdr.original_source, mymanethdr.timestamp, mymanethdr.timestamp_frac);
-			netif_rx(skb);
-		}
-		else{
-			//This is neither a new mac entry, nor a new packet from an existing mac entry. 
-			//Possibly a duplicate packet. Do not update our timestamps.
-			//Do not forward duplicate packets to the higher layers
-			g_per_session_dup_cnt++;
-			if(skb != NULL){
-				kfree_skb(skb);
-			}
-		}
-
-		return 0;
-		*/
 		netif_rx(skb);
 		return 0;
 	}
@@ -405,10 +333,13 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 		/*Reduce the Number of Remaining Hops for this packet*/
 		mymanethdr.hops_remaining = mymanethdr.hops_remaining - 1;
 
-		if(!(global_fwd_disable) && (!global_manifold_disable) && (distance_from_me != 0) && (mymanethdr.hops_remaining != 0)
-				&& (memcmp(mymanethdr.final_destination, netdev->dev_addr, 6) != 0)) { 
-			if(routing_decision(distance_from_me, mymanethdr.orig_distance, mymanethdr.distance, old_timestamp, old_timestamp_frac, mymanethdr.timestamp, mymanethdr.timestamp_frac) || 
-				(distance_from_me == 0xFF)) {
+		if(!(global_fwd_disable) && (!global_manifold_disable) && (distance_from_me != 0) 
+			&& (mymanethdr.hops_remaining != 0) 
+			&& (memcmp(mymanethdr.final_destination, netdev->dev_addr, 6) != 0)) { 
+			if(routing_decision(distance_from_me, mymanethdr.orig_distance, 
+					mymanethdr.distance, old_timestamp, old_timestamp_frac, 
+					mymanethdr.timestamp, mymanethdr.timestamp_frac) || 
+					(distance_from_me == 0xFF)) {
 
 				if(skb->pkt_type == PACKET_BROADCAST){
 
@@ -419,7 +350,8 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 					rand_value = random32()%INT_MAX;
 					if(rand_value < (unsigned int)(1*(float)(INT_MAX))/(p_fwd_deno)) {
 						mymanethdr.distance = distance_from_me;
-						wdl_modify_and_transmit((skb_copy(skb, GFP_ATOMIC)), netdev, g_broadcast_mac, netdev->dev_addr, mymanethdr);
+						wdl_modify_and_transmit((skb_copy(skb, GFP_ATOMIC)), netdev, 
+									g_broadcast_mac, netdev->dev_addr, mymanethdr);
 					}
 				}
 				else {
@@ -432,7 +364,8 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 					rand_value = random32()%INT_MAX;
 					if(rand_value < (unsigned int)(2*(float)(INT_MAX))/p_fwd_deno) {
 						mymanethdr.distance = distance_from_me;
-						wdl_modify_and_transmit((skb_copy(skb, GFP_ATOMIC)), netdev, g_broadcast_mac, netdev->dev_addr, mymanethdr);
+						wdl_modify_and_transmit((skb_copy(skb, GFP_ATOMIC)), netdev, 
+									g_broadcast_mac, netdev->dev_addr, mymanethdr);
 					}
 				}
 			}
@@ -456,10 +389,10 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 
 #if MYMANET_STORE_PATH
 
-		#if IS_EMB_DEV
-		#else
-			add_or_update_path_entry(mymanethdr.original_source, mymanethdr.hop1_mac, mymanethdr.hop2_mac, mymanethdr.hop3_mac, mymanethdr.session_id);
-		#endif		
+#if IS_EMB_DEV
+#else
+		add_or_update_path_entry(mymanethdr.original_source, mymanethdr.hop1_mac, mymanethdr.hop2_mac, mymanethdr.hop3_mac, mymanethdr.session_id);
+#endif		
 #endif
 
 		netif_rx(skb);
@@ -491,7 +424,7 @@ int wdl_hard_start_xmit(struct sk_buff *skb_original, struct net_device *netdev)
 	eth_type_manifold[0]=0x33;
 	eth_type_manifold[1]=0x33;
 
-	if((device_hard_start_xmit_backup != NULL) && (netdev != NULL)){
+	if((device_hard_start_xmit_backup) && netdev){
 
 		memcpy(mymanethdr.final_destination, skb_original->data, 6);
 		memcpy(mymanethdr.original_source, skb_original->data + 6, 6);
@@ -501,9 +434,12 @@ int wdl_hard_start_xmit(struct sk_buff *skb_original, struct net_device *netdev)
 		 *coming from the reception path */
 		if((mymanethdr.eth_type_original[0] == eth_type_manifold[0]) && (mymanethdr.eth_type_original[1] == eth_type_manifold[1])){
 
-		/*This is a Manifold packet coming from our Reception Path.
+			/*
+			 * This is a Manifold packet coming from our Reception Path.
 			 * Dont touch this packet. Just send it as it is.
-			 * */
+			 * 
+			*/
+
 			/*Actual Transmission happens here*/
 			if(netdev->flags & IFF_UP)
 			{
@@ -511,7 +447,7 @@ int wdl_hard_start_xmit(struct sk_buff *skb_original, struct net_device *netdev)
 				return ret;				
 			}
 			else{
-				printk(KERN_ALERT "\n\nDevice was DOWN !! \n\n");
+				printk(KERN_ALERT "INFO: Device was busy. \n\n");
 				return NETDEV_TX_BUSY;	
 			}
 
@@ -551,9 +487,9 @@ int wdl_hard_start_xmit(struct sk_buff *skb_original, struct net_device *netdev)
 			memcpy(skb_push(skb, MANIFOLD_HEADER_SIZE), &mymanethdr, MANIFOLD_HEADER_SIZE);
 
 			/*Spoof our own address as source address and Dest MAC = Broadcast*/
-			memcpy(skb_push(skb, 2), eth_type_manifold, 2 );
-			memcpy(skb_push(skb, 6), netdev->dev_addr, 6);
-			memcpy(skb_push(skb, 6), g_broadcast_mac, 6);
+			SET_SKB_FIELD(skb, eth_type_manifold, 2 );
+			SET_SKB_FIELD(skb, netdev->dev_addr, 6);
+			SET_SKB_FIELD(skb, g_broadcast_mac, 6);
 
 			new_header_room = (int)(skb->data - skb->head);
 
@@ -575,28 +511,25 @@ int wdl_hard_start_xmit(struct sk_buff *skb_original, struct net_device *netdev)
 							{
 								//Directly calling hard_start_xmit fails for some kernels
 								dev_queue_xmit(skb_copy(skb, GFP_ATOMIC));
-								//wdl_hard_start_xmit(skb_copy(skb, GFP_ATOMIC), netdev);
 							}
 						}
 						else
 						{
+							//@hrushi: this part needs a comment.
 							dev_queue_xmit(skb_copy(skb, GFP_ATOMIC));
-							dev_queue_xmit(skb_copy(skb, GFP_ATOMIC));
-							//wdl_hard_start_xmit(skb_copy(skb, GFP_ATOMIC), netdev);
-							//wdl_hard_start_xmit(skb_copy(skb, GFP_ATOMIC), netdev);
+							dev_queue_xmit(skb_copy(skb, GFP_ATOMIC)); /*This is intentional*/
 						}
 					}
 					else
 					{
+						//@hrushi: this part needs a comment.
 						dev_queue_xmit(skb_copy(skb, GFP_ATOMIC));
-						dev_queue_xmit(skb_copy(skb, GFP_ATOMIC));						
-						//wdl_hard_start_xmit(skb_copy(skb, GFP_ATOMIC), netdev);
-						//wdl_hard_start_xmit(skb_copy(skb, GFP_ATOMIC), netdev);
+						dev_queue_xmit(skb_copy(skb, GFP_ATOMIC)); /*This is intentional*/		
 					}
 				}
 
-				
-				//return wdl_hard_start_xmit(skb, netdev);
+				//@hrushim: Why do we use device_hard_start_xmit_backup here instead of dev_queue_xmit.
+				//this part needs comment.
 				return (*device_hard_start_xmit_backup)(skb, netdev);
 				//return dev_queue_xmit(skb);
 			}
@@ -618,21 +551,21 @@ int wdl_hard_start_xmit(struct sk_buff *skb_original, struct net_device *netdev)
  * deletes the proc entry as well as removes the new registered packet type*/
 static void hello_exit(void)
 {
-	#if MYMANET_KERNEL_VERSION_6_30_PLUS
-		struct net_device_ops new_netdev_ops;
-		struct net_device_ops *new_netdev_ops_ptr = &new_netdev_ops;
-	#endif
+#if MYMANET_KERNEL_VERSION_6_30_PLUS
+	struct net_device_ops new_netdev_ops;
+	struct net_device_ops *new_netdev_ops_ptr = &new_netdev_ops;
+#endif
 	mod_timer(&g_session_timer, jiffies + 1);
 	del_timer_sync(&g_session_timer);
 
 	if((device_hard_start_xmit_backup != NULL) && (d !=NULL)) {
-		#if MYMANET_KERNEL_VERSION_6_30_PLUS
-			memcpy(&new_netdev_ops, d->netdev_ops, sizeof(struct net_device_ops));
-			new_netdev_ops_ptr->ndo_start_xmit = device_hard_start_xmit_backup;
-			memcpy((void *)d->netdev_ops, &new_netdev_ops, sizeof(struct net_device_ops));
-		#else
-			d->hard_start_xmit = device_hard_start_xmit_backup;
-		#endif
+#if MYMANET_KERNEL_VERSION_6_30_PLUS
+		memcpy(&new_netdev_ops, d->netdev_ops, sizeof(struct net_device_ops));
+		new_netdev_ops_ptr->ndo_start_xmit = device_hard_start_xmit_backup;
+		memcpy((void *)d->netdev_ops, &new_netdev_ops, sizeof(struct net_device_ops));
+#else
+		d->hard_start_xmit = device_hard_start_xmit_backup;
+#endif
 	}
 
 	if(d != NULL)
@@ -647,7 +580,7 @@ static void hello_exit(void)
 	free_entire_distance_list();
 	free_entire_stat_list();
 
-	printk(KERN_ALERT "\nByee! nice world\n");
+	printk(KERN_ALERT "\nINFO: LifeNet has been disabled.\n");
 }
 
 /*This is the MAIN module initialization function for the module.
@@ -662,10 +595,10 @@ static int hello_init(void)
 
 	struct proc_dir_entry *proc_entry, *proc_entry_rxstats, *proc_entry_txstats, *proc_entry_distance;
 
-	#if MYMANET_KERNEL_VERSION_6_30_PLUS
-		struct net_device_ops new_netdev_ops;
-		struct net_device_ops *new_netdev_ops_ptr = &new_netdev_ops;
-	#endif
+#if MYMANET_KERNEL_VERSION_6_30_PLUS
+	struct net_device_ops new_netdev_ops;
+	struct net_device_ops *new_netdev_ops_ptr = &new_netdev_ops;
+#endif
 
 	dev_add_pack(&manifold_ptype);
 
@@ -677,7 +610,7 @@ static int hello_init(void)
 	else {
 		proc_entry->read_proc = wdl_read;
 		proc_entry->write_proc = wdl_write;
-		printk(KERN_ALERT "ash: proc entry created\n");
+		printk(KERN_ALERT "INFO: proc entry created\n");
 	}
 
 	proc_entry_rxstats = create_proc_entry("rxstats", 0444, NULL);
@@ -688,7 +621,7 @@ static int hello_init(void)
 	else {
 		proc_entry_rxstats->read_proc = rxstats_read;
 		proc_entry_rxstats->write_proc = NULL;
-		printk(KERN_ALERT "ash: rxstats proc entry created\n");
+		printk(KERN_ALERT "INFO: rxstats proc entry created\n");
 	}
 
 	proc_entry_txstats = create_proc_entry("txstats", 0444, NULL);
@@ -699,7 +632,7 @@ static int hello_init(void)
 	else {
 		proc_entry_txstats->read_proc = txstats_read;
 		proc_entry_txstats->write_proc = NULL;
-		printk(KERN_ALERT "ash: txstats proc entry created\n");
+		printk(KERN_ALERT "INFO: txstats proc entry created\n");
 	}
 
 	proc_entry_distance = create_proc_entry("distance", 0444, NULL);
@@ -713,12 +646,18 @@ static int hello_init(void)
 		printk(KERN_ALERT "ash: distance proc entry created\n");
 	}
 
-	printk(KERN_ALERT "Hello, world. the current process is: %s pid is : %d module param is: %s NEW_KERNEL : %d MYMANET_ALPHA is : %d MYMANET_BETA : %d: MYMANET_STORE_PATH : %d: MANIFOLD_HEADER_SIZE : %d \n", current->comm, current->pid, device_name, NEW_KERNEL, mymanet_alpha, mymanet_beta, MYMANET_STORE_PATH, MANIFOLD_HEADER_SIZE);
+	printk(KERN_ALERT "INFO: LifeNet has been enabled.	\
+		Current process is: %s pid is : %d module param is: %s \
+		NEW_KERNEL : %d MYMANET_ALPHA is : %d MYMANET_BETA : %d:	\
+		MYMANET_STORE_PATH : %d: MANIFOLD_HEADER_SIZE : %d \n", 	
+		current->comm, current->pid, device_name, NEW_KERNEL, 
+		mymanet_alpha, mymanet_beta, MYMANET_STORE_PATH, 
+		MANIFOLD_HEADER_SIZE);
 
 	initialize_session_timer();
 
 	if(strncmp(device_name, "", strlen(device_name)) == 0){
-		printk(KERN_ALERT"\nDevice Name Not specified. Cannot load module. Try again.\n");
+		printk(KERN_ALERT"\nERROR: Device Name Not specified. Cannot load module. Try again.\n");
 		hello_exit();
 		return 0;
 	}
@@ -728,20 +667,20 @@ static int hello_init(void)
 	d = dev_get_by_name(device_name);
 #endif
 	if(d != NULL)
-		printk(KERN_ALERT "Yeah !! name of device is %s  irq number is : %d flags %d type %d", d->name, 
+		printk(KERN_ALERT "INFO: Name of device is %s  irq number is : %d flags %d type %d", d->name, 
 				d->irq, d->flags, d->type);
 	else
 		hello_exit();
 
-	#if MYMANET_KERNEL_VERSION_6_30_PLUS
-		device_hard_start_xmit_backup = d->netdev_ops->ndo_start_xmit;
-		memcpy(&new_netdev_ops, d->netdev_ops, sizeof(struct net_device_ops));
-		new_netdev_ops_ptr->ndo_start_xmit = wdl_hard_start_xmit;
-		memcpy((void *)d->netdev_ops, &new_netdev_ops, sizeof(struct net_device_ops));
-	#else
-		device_hard_start_xmit_backup = d->hard_start_xmit;
-		d->hard_start_xmit = wdl_hard_start_xmit;
-	#endif
+#if MYMANET_KERNEL_VERSION_6_30_PLUS
+	device_hard_start_xmit_backup = d->netdev_ops->ndo_start_xmit;
+	memcpy(&new_netdev_ops, d->netdev_ops, sizeof(struct net_device_ops));
+	new_netdev_ops_ptr->ndo_start_xmit = wdl_hard_start_xmit;
+	memcpy((void *)d->netdev_ops, &new_netdev_ops, sizeof(struct net_device_ops));
+#else
+	device_hard_start_xmit_backup = d->hard_start_xmit;
+	d->hard_start_xmit = wdl_hard_start_xmit;
+#endif
 
 	return 0;
 }
