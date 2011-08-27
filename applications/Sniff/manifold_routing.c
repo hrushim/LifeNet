@@ -64,6 +64,8 @@ int manifold_routing(int receiver, unsigned char recvmac[6], int s, int r) {
     }
 
     if (update_kernel_distance_table) {
+	//#TODO:We should write directly to the proc file 
+	//than spawning a new process to do just that.
         sprintf(command, "echo distance %x:%x:%x:%x:%x:%x %d > /proc/wdl", recvmac[0], recvmac[1],
                 recvmac[2], recvmac[3], recvmac[4], recvmac[5], g_distance_table[receiver][0]);
         system(command);

@@ -31,6 +31,8 @@ Georgia Institute of Technology, Atlanta, USA
 #include "distance_list_functions.h"
 #include "string_functions.h"
 
+#define MANIFOLD_DEBUG 0
+
 int g_distance_list_count;
 struct distance_list *distance_head=NULL;
 
@@ -108,9 +110,9 @@ int add_or_update_entry(uint8_t final_destination[6], int distance){
 	else{
 		/*Check if entry already exists. If yes, just update it and Return.*/
 		if(search_and_update_distance(final_destination, distance) == 1){
-			#ifdef MANIFOLD_DEBUG
+#ifdef MANIFOLD_DEBUG
 			print_distance_list();
-			#endif
+#endif
 			return 0; /*Entry Updated Successfully*/
 		}
 
@@ -151,13 +153,13 @@ int print_distance_list(void){
 		return -1;
 	}
 
-#if DEBUG	
+#if MANIFOLD_DEBUG	
 	printk(KERN_ALERT"\nThe Distance list is as follows:\n");
 #endif
 	tmp = distance_head;
 	while(tmp != NULL){
 
-#if DEBUG
+#if MANIFOLD_DEBUG
 		printk(KERN_ALERT"\n%d/%d: id = %d final_destination = %x:%x:%x:%x:%x:%x distance = %d\n",
 			(i+1), g_distance_list_count, tmp->id, 
 			tmp->final_destination[0], tmp->final_destination[1], tmp->final_destination[2],
