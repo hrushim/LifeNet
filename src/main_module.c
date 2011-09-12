@@ -548,7 +548,7 @@ int wdl_hard_start_xmit(struct sk_buff *skb_original, struct net_device *netdev)
 /*Basic Module specific code starts here*/
 
 /*
- * We need to re-instates the hard_start_xmit function to the lower level function,
+ * We need to reinstate the hard_start_xmit function to the lower level function,
  * delete the proc entry, and remove the new registered packet type when
  * the module is unloaded.
 */
