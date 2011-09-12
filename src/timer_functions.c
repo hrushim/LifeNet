@@ -41,7 +41,7 @@ struct timer_list g_session_timer;
 void timer_func(void)
 {
 	collect_garbage_entries(1);
-  
+
 	/*Save the statistics of the previous(complete) session. This will be displayed in the proc entries.*/
 	g_last_session_id = g_session_id;
 	g_manifold_last_session_transmitted_count = g_manifold_session_transmitted_count; 
@@ -50,11 +50,18 @@ void timer_func(void)
 	g_per_session_dup_cnt = 0;
 
 	/*Prepare for the next session.*/
-	g_session_id = (g_session_id + 1) % 255;	
+	g_session_id = (g_session_id + 1) % 255;
 	g_manifold_session_transmitted_count = 0;	/*Clear the Manifold transmitted count for this new session*/
 
-	printk(KERN_ALERT "\nI am in the Timer Function!! session id is now: %d  Dup %d in last session \n", g_session_id, g_last_per_session_dup_cnt);
-	mod_timer(&g_session_timer, jiffies + (MANIFOLD_INTERVAL * HZ));
+	/*printk(KERN_ALERT "\nI am in the Timer Function!!
+		session id is now: %d  Dup %d in last session \n",
+		g_session_id, g_last_per_session_dup_cnt);
+	*/
+
+	/*
+	 * @HrushiM, please un-comment this when Panic is fixed.
+	 */
+	/*mod_timer(&g_session_timer, jiffies + (MANIFOLD_INTERVAL * HZ));*/
 	return;
 }
 

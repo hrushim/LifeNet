@@ -66,8 +66,27 @@ uint8_t g_broadcast_mac[6]={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
 /*Prototype Declarations*/
 int wdl_handle_recieve(struct sk_buff *, struct net_device *, struct packet_type *, struct net_device *);
+
+int lifenet_device_open(struct net_device *netdev);
+int lifenet_device_stop(struct net_device *netdev);
 int wdl_hard_start_xmit(struct sk_buff *, struct net_device *);
+int lifenet_device_hard_start_xmit(struct sk_buff *skb, struct net_device *netdev);
+void lifenet_device_tx_timeout(struct net_device *netdev);
+void lifenet_device_multicast_list(struct net_device *netdev);
+int lifenet_device_do_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd);
+struct net_device_stats * lifenet_device_get_stats(struct net_device *netdev);
+int lifenet_device_set_mac_address(struct net_device *netdev, void *p);
+int lifenet_device_change_mtu(struct net_device *netdev, int new_mtu);
+
+int (*device_open_backup) (struct net_device *netdev) = NULL;
+int (*device_stop_backup) (struct net_device *netdev) = NULL;
 int (*device_hard_start_xmit_backup) (struct sk_buff *skb, struct net_device *netdev) = NULL;
+void (*device_ndo_tx_timeout_backup) (struct net_device *netdev) = NULL;
+void (*device_ndo_set_multicast_list_backup) (struct net_device *netdev) = NULL;
+int (*device_do_ioctl_backup) (struct net_device *dev, struct ifreq *ifr, int cmd) = NULL;
+struct net_device_stats * (*device_ndo_get_stats_backup) (struct net_device *netdev) = NULL;
+int (*device_set_mac_address_backup) (struct net_device *netdev, void *p) = NULL;
+int (*device_ndo_change_mtu_backup) (struct net_device *netdev, int new_mtu) = NULL;
 
 
 /*Define a new packet type and a receive function to handle this packet type. 
