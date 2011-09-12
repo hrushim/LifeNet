@@ -72,9 +72,9 @@ MODULE_LICENSE("GPL");
 #define SET_SKB_FIELD(skb, object, size) 	\
 	memcpy(skb_push(skb, size), object, size);
 
-module_param(device_name, charp, S_IRUGO);	/*Device name can be given as a parameter to the module*/
-module_param(mymanet_alpha, int, 0);	/*Device name can be given as a parameter to the module*/
-module_param(mymanet_beta, int, 0);	/*Device name can be given as a parameter to the module*/
+module_param(device_name, charp, S_IRUGO);
+module_param(mymanet_alpha, int, 0);
+module_param(mymanet_beta, int, 0);
 
 struct mymanet_header{
 	uint8_t session_id;
@@ -665,7 +665,7 @@ static struct net_device_ops lifenet_netdev_ops = {
 	.ndo_do_ioctl	 	= NULL,
 	.ndo_start_xmit         = lifenet_device_hard_start_xmit,	/*
 									 * replace this with
-									 * wdl_hard_start_xmit once the
+									 * wdl_handle_recieve once the
 									 * kernel panics are resolved.
 									 */
 };
