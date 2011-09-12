@@ -673,7 +673,7 @@ static struct net_device_ops lifenet_netdev_ops = {
 	.ndo_start_xmit         = lifenet_device_hard_start_xmit,	/*
 									 * replace this with
 									 * wdl_hard_start_xmit once the
-									 * kernel panicks are resolved.
+									 * kernel panics are resolved.
 									 */
 };
 #endif
