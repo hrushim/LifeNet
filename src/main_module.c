@@ -12,8 +12,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Project: MyMANET - A Platform to Build Customized MANET's
-Developers: Ashwin Paranjpe, Santosh Vempala
+Project: LifeNet
+Developers: Hrushikesh Mehendale, Ashwin Paranjpe, Santosh Vempala
 Georgia Institute of Technology, Atlanta, USA
  */
 
@@ -560,13 +560,6 @@ static void hello_exit(void)
 
 	if((device_hard_start_xmit_backup) && (d)) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,29)
-		/*static const struct net_device_ops original_netdev_ops = {
-			.ndo_open               = lifenet_device_open,
-			.ndo_stop               = lifenet_device_stop,
-			.ndo_get_stats		= lifenet_device_get_stats,
-			.ndo_do_ioctl	 	= lifenet_device_do_ioctl,
-			.ndo_start_xmit         = lifenet_device_hard_start_xmit,
-		};*/
 		d->netdev_ops = original_netdev_ops;
 		printk(KERN_ALERT "INFO: net device struct is %p. \n\n", d->netdev_ops);
 #else
@@ -787,14 +780,14 @@ static int hello_init(void)
 			device_ndo_get_stats_backup = d->netdev_ops->ndo_get_stats;
 
 		/*
-		 * We need to re-instate netdev_ops
+		 * We need to reinstate netdev_ops
 		 * when module is unloaded.
 		 */
 		printk(KERN_ALERT "INFO: net device struct is %p. \n\n", d->netdev_ops);
 		original_netdev_ops = d->netdev_ops;
 
 		/*
-		 * Overrding w/ LifeNet functions
+		 * Overriding w/ LifeNet functions
 		 */
 		d->netdev_ops = &lifenet_netdev_ops;
 
