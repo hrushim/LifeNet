@@ -730,6 +730,8 @@ static int hello_init(void)
 		mymanet_alpha, mymanet_beta, MYMANET_STORE_PATH,
 		MANIFOLD_HEADER_SIZE);
 
+	INIT_LIST_HEAD(&stat_head.list);
+
 	initialize_session_timer();
 
 	if(strlen(device_name) == 0){

@@ -27,14 +27,14 @@ struct stat_list{
         uint8_t mac[6];
 	uint32_t session_id;
 	uint32_t tx_session_id;
-	uint32_t fwd_session_id;	
+	uint32_t fwd_session_id;
 	int num_rx;
 	int num_rx_bcast;
 	int num_tx;
 	int num_fwd;
 	uint32_t last_session_id;
 	uint32_t last_tx_session_id;
-	uint32_t last_fwd_session_id;	
+	uint32_t last_fwd_session_id;
 	int last_num_rx;
 	int last_num_rx_bcast;
 	int last_num_tx;
@@ -42,10 +42,11 @@ struct stat_list{
 	struct timeval last_recv_time;
         struct stat_list *next;
         struct stat_list *prev;
+	struct list_head list;
 };
 
 extern int g_stat_list_count;
-extern struct stat_list *stat_head;
+extern struct stat_list stat_head;
 
 int add_or_update_stat_entry(uint8_t mac[6], uint8_t tx_rx_flag, uint32_t session_id, uint8_t dest_mac[6]);
 int free_entire_stat_list(void);

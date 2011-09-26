@@ -28,6 +28,7 @@ Georgia Institute of Technology, Atlanta, USA
 #include<linux/string.h>
 #include<linux/unistd.h>
 #include<linux/proc_fs.h>
+#include<linux/list.h>
 
 #include "platform_dep_flags.h"
 #include "distance_list_functions.h"
@@ -52,6 +53,7 @@ extern int g_session_id;
 extern int g_last_session_id;
 
 extern struct distance_list *distance_head;
+extern struct stats_list stats_head;
 
 #define MAX_WDL_BUFFER_SIZE 40
 #define COMMAND_LENGTH 20
@@ -294,7 +296,8 @@ static int handle_commands(char command[COMMAND_LENGTH], char arg1[ARGUMENT_LENG
 int rxstats_read(char* page, char** start, off_t off, int count, int* eof, void *data)
 {
         int len=0;
-	struct stat_list *tmp = NULL;	
+	struct list_head *pos = NULL, *q = NULL;
+	struct stat_list *tmp = NULL;
 
         if (off > 0) {
                 *eof = 1;
@@ -305,15 +308,13 @@ int rxstats_read(char* page, char** start, off_t off, int count, int* eof, void 
                 len = sprintf(page, "No device specified.\n");
                 return len;
         }
-        
-	tmp = (struct stat_list *) stat_head;
-	while(tmp != NULL){
 
+
+	list_for_each_safe(pos, q, &stat_head.list){
+		tmp = list_entry(pos, struct stat_list, list);
 		len += sprintf(page+len, "%x:%x:%x:%x:%x:%x %d %d %d %d %d\n", tmp->mac[0], tmp->mac[1], 
 			tmp->mac[2], tmp->mac[3], tmp->mac[4], tmp->mac[5], tmp->last_num_rx, tmp->last_session_id, tmp->last_num_rx_bcast, 
 			tmp->num_rx, tmp->session_id);
-
-		tmp = tmp->next;
 	}
 	return len;
 }
@@ -326,10 +327,11 @@ int rxstats_read(char* page, char** start, off_t off, int count, int* eof, void 
  * this function, currently just prints the Manifold packets transmitted by this device.
  * TODO: It prints the number of packets transmitted and the MAC of destinations
  */
-int txstats_read(char* page, char** start, off_t off, int count, int* eof, void *data){
-  
+int txstats_read(char* page, char** start, off_t off, int count, int* eof, void *data)
+{
         int len=0;
-	struct stat_list *tmp = NULL;	
+	struct list_head *pos = NULL, *q = NULL;
+	struct stat_list *tmp = NULL;
 
         if (off > 0) {
                 *eof = 1;
@@ -340,13 +342,14 @@ int txstats_read(char* page, char** start, off_t off, int count, int* eof, void 
                 len = sprintf(page, "No device specified.\n");
                 return len;
         }
-        
-	tmp = (struct stat_list *) stat_head;
-	while(tmp != NULL){
 
-		len += sprintf(page+len, "%x:%x:%x:%x:%x:%x %d %d %d %d %d %d %d %d\n", tmp->mac[0], tmp->mac[1], tmp->mac[2], tmp->mac[3], tmp->mac[4], tmp->mac[5], tmp->last_num_tx, tmp->last_tx_session_id, tmp->num_tx, tmp->tx_session_id, tmp->last_num_fwd, tmp->last_fwd_session_id, tmp->num_fwd, tmp->fwd_session_id);
-
-		tmp = tmp->next;
+	list_for_each_safe(pos, q, &stat_head.list){
+		tmp = list_entry(pos, struct stat_list, list);
+		len += sprintf(page+len, "%x:%x:%x:%x:%x:%x %d %d %d %d %d %d %d %d\n",
+			tmp->mac[0], tmp->mac[1], tmp->mac[2], tmp->mac[3], tmp->mac[4],
+			tmp->mac[5], tmp->last_num_tx, tmp->last_tx_session_id, tmp->num_tx,
+			tmp->tx_session_id, tmp->last_num_fwd, tmp->last_fwd_session_id,
+			tmp->num_fwd, tmp->fwd_session_id);
 	}
 	return len;
 }
@@ -377,7 +380,7 @@ int distance_read(char* page, char** start, off_t off, int count, int* eof, void
 	if(distance_head == NULL){
 		len = sprintf(page,"\nDistance list is empty\n");
 		return len;
-	}                       
+	}
 
 	tmp = distance_head;
 	while(tmp != NULL){
