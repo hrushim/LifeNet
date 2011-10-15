@@ -32,6 +32,9 @@ Georgia Institute of Technology, Atlanta, USA
 #include "path_list_functions.h"
 #include "string_functions.h"
 
+/*#TODO - Use the Linux kernel's standard linked list API to iterate
+over the path list (refer the statlist implementation).
+*/
 
 int g_path_list_count;
 struct path_list *path_head = NULL;

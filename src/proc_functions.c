@@ -43,13 +43,7 @@ extern int global_fwd_disable;
 extern int global_manifold_disable;
 extern uint8_t bcast_fwd_threshold;
 
-//extern int global_recieved_count;
-//extern int global_transmitted_count;
-//extern int g_manifold_recieved_count;
-//extern int g_manifold_transmitted_count;
-//extern int g_manifold_session_transmitted_count;
 extern int g_session_id;
-//extern int g_manifold_last_session_transmitted_count;
 extern int g_last_session_id;
 
 extern struct distance_list *distance_head;

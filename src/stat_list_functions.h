@@ -40,8 +40,6 @@ struct stat_list{
 	int last_num_tx;
 	int last_num_fwd;
 	struct timeval last_recv_time;
-        struct stat_list *next;
-        struct stat_list *prev;
 	struct list_head list;
 };
 

@@ -786,7 +786,7 @@ static int hello_init(void)
 		 * when module is unloaded.
 		 */
 		printk(KERN_ALERT "INFO: net device struct is %p. \n\n", d->netdev_ops);
-		original_netdev_ops = d->netdev_ops;
+		original_netdev_ops = (struct net_device_ops *)d->netdev_ops;
 
 		/*
 		 * Overriding w/ LifeNet functions

@@ -34,6 +34,10 @@ Georgia Institute of Technology, Atlanta, USA
 
 #define DEBUG 0
 
+/*#TODO - Use the Linux kernel's standard linked list API to iterate
+over the timestamp list (refer the statlist implementation).
+*/
+
 int g_timestamp_list_count;
 struct timestamp_list *timestamp_head=NULL;
 

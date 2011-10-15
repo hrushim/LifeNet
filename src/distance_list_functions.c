@@ -33,6 +33,10 @@ Georgia Institute of Technology, Atlanta, USA
 
 #define MANIFOLD_DEBUG 0
 
+/*#TODO - Use the Linux kernel's standard linked list API to iterate
+over the distance list (refer the statlist implementation).
+*/
+
 int g_distance_list_count;
 struct distance_list *distance_head=NULL;
 
