@@ -32,5 +32,5 @@ cp mymanet.conf $HOME/.LifeNetData/config
 cp -r src/manifold.ko $HOME/.LifeNetData/
 cp -r applications/ $INSTALL_DIR/applications/
 
-echo -e "\nCongratulations!! \nLifeNet is now installed on your system.\nYou can use the following commands henceforth to start or stop LifeNet.\n-> sudo lifenet_start\n-> sudo lifenet_stop\n"
+echo "\nCongratulations!! \nLifeNet is now installed on your system.\nYou can use the following commands henceforth to start or stop LifeNet.\n-> lifenet_start\n-> lifenet_stop\n"
 

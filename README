@@ -39,8 +39,8 @@ Last updated - 27 Jun 2011
 
 LifeNet supports and has been fully tested on the following operating systems:
 
-- Ubuntu Linux distributions upto 10.04
-- Kubuntu Linux distributions upto 10.04
+- Ubuntu Linux distributions including and after 8.04
+- Kubuntu Linux distributions including and after 8.04
 
 LifeNet can also work on other Linux distributions. However, the developers haven't yet fully tested LifeNet onto Linux distros other than those mentioned above. Please feel free to try it out on other Linux distributions that you may have and email your feedback to any of the following with 'LifeNet feedback' as your email subject:
 - hrushi@gatech.edu
@@ -75,10 +75,10 @@ b. Name of your Ethernet network interface
 Once the above mentioned 3 steps are successfully executed, you can use the following commands: 
 
 [Starting LifeNet]
-	Command -> $sudo lifenet_start
+	Command -> $lifenet_start
 
 [Stopping Lifenet]
-	Command -> $sudo lifenet_stop
+	Command -> $lifenet_stop
 
 [Starting Network Visualization]
 	Command -> $lifenet_visualize
@@ -97,11 +97,3 @@ a. LifeNet requires the Wifi network adapters to function in ad-hoc mode. It may
 - iwl family like iwl3945
 - madwifi
 
---------------
-5. ToDo
---------------
-
-1. DisplayGnst bug removal
-2. Removal of state entries from sniffer
-3. Cleaning up of the starting sequence on laptops
-4. Cleanup of debug messages both from sniffer and injector

@@ -83,7 +83,7 @@ echo "Kernel 6.3 plus? = $MYMANET_KERNEL_VERSION_6_30_PLUS"
 
 sleep 2
 
-echo -e "\nMake sure you have disabled the NetworkManager!\n"
+echo -e "\nDisable Wireless from your NetworkManager! This is very important and without this LifeNet will not work! NetworkManager interferes with the commandline utilities for altering the network interface.\n"
 echo -e "Press any key to continue...\n"
 read KEY
 
