@@ -13,7 +13,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Project: MyMANET - A Platform to Build Customized MANET's
-Developers: Ashwin Paranjpe, Santosh Vempala
+Developers: Hrushikesh Mehendale, Ashwin Paranjpe, Santosh Vempala
 Georgia Institute of Technology, Atlanta, USA
  */
 
@@ -64,22 +64,52 @@ Georgia Institute of Technology, Atlanta, USA
 
 MODULE_LICENSE("GPL");
 
+//
+// Kernel Module Parameters
+//
 
-/*Start of Manifold Module Code*/
+module_param(device_name, charp, S_IRUGO);	// Name of the wireless device interface e.g. wlan0 or ath0, etc.
+module_param(mymanet_alpha, int, 0);		// Effective Distance difference threshold used for making routing decisions
+module_param(mymanet_beta, int, 0);	        // Again used for making routing decisions
 
-module_param(device_name, charp, S_IRUGO);	/*Device name can be given as a parameter to the module*/
-module_param(mymanet_alpha, int, 0);	/*Device name can be given as a parameter to the module*/
-module_param(mymanet_beta, int, 0);	/*Device name can be given as a parameter to the module*/
+
+//
+// Mandatory header fields
+//
+//  -----------------------------------
+// | SESSID |  TTL   |  DIST  | ODIST  |
+//  -----------------------------------
+// |            TIMESTAMP              |
+//  -----------------------------------
+// |   TIMESTAMP FRACTIONAL PART       |
+//  -----------------------------------
+// |  OSRC  |  DEST  |  ETH   |
+//  -------------------------- 
+//
+// Additional header fields if path tracing is enabled (works for TTL = 4)
+//
+//  -----------------------------------
+// |  MAC of 1st forwarder node        |
+//  -----------------------------------
+// |                 |                 |
+//  -----------------------------------
+// |  MAC of 2nd forwarder node        |
+//  -----------------------------------
+// |  MAC of 3rd forwarded node        |
+//  -----------------------------------
+// |                 |
+//  -----------------
+//
+//
 
 struct mymanet_header{
-	uint8_t session_id;
-	uint8_t hops_remaining;
-	uint8_t distance;
-	uint8_t orig_distance;
-	//struct timeval timestamp;
-	uint32_t timestamp;
-	uint32_t timestamp_frac;
-	uint8_t original_source[6];
+	uint8_t session_id;		// Network statistics are refreshed after session elapses
+	uint8_t hops_remaining;		// Used to bound the maximum path length
+	uint8_t distance;		// Current packet distance (updated by the transmitter or forwarder node)
+	uint8_t orig_distance;		// Distance of the destination from the original transmitter (one-time write only)
+	uint32_t timestamp;		// Serves as a sequence number
+	uint32_t timestamp_frac;	//
+	uint8_t original_source[6];	// This and the next two fields are used for reconstructing the ethernet header when the packet is received
 	uint8_t final_destination[6];
 	uint8_t eth_type_original[2];
 #if MYMANET_STORE_PATH
@@ -91,13 +121,13 @@ struct mymanet_header{
 
 uint8_t bcast_fwd_threshold = 2;
 
-/*This is not a standalone function and shall be called from wdl_handle_receive
- * function ONLY when there is a need to change the MAC header of the packet.
- * This function simply makes the necessary changes in the packet and then 
- * calls the wdl_hard_start_xmit function which will then do the actual work 
- * of transmission. Currently it retransmits the broadcast packet by spoofing
- * its own MAC as the source MAC
- * */
+// This is not a standalone function and shall be called from wdl_handle_receive
+// function ONLY when there is a need to change the MAC header of the packet.
+// This function simply makes the necessary changes in the packet and then 
+// calls the wdl_hard_start_xmit function which will then do the actual work 
+// of transmission. Currently it retransmits the broadcast packet by spoofing
+// its own MAC as the source MAC
+
 int wdl_modify_and_transmit(struct sk_buff *skb, struct net_device *netdev, uint8_t dest_mac[6], uint8_t src_mac[6], struct mymanet_header mymanethdr)
 {
 
@@ -150,21 +180,6 @@ int wdl_modify_and_transmit(struct sk_buff *skb, struct net_device *netdev, uint
 			
 	if(netdev->flags & IFF_UP)
 	{
-/*
-		prob_fwd = ((mymanethdr.distance) * RTX_CNT)/MAX_USABLE_VD;
-		
-		if(compare_mac_address(mymanethdr.final_destination, g_broadcast_mac)==0)
-		{
-			if(mymanethdr.distance != 255 && mymanethdr.distance!=0)
-			{
-				for(i = 0; i < prob_fwd && prob_fwd >= 0; i++)
-				{
-					dev_queue_xmit(skb_copy(skb, GFP_ATOMIC));
-				}
-			}
-			dev_queue_xmit(skb_copy(skb, GFP_ATOMIC));
-		}
-*/
 		return dev_queue_xmit(skb);
 	}
 	else{
@@ -200,9 +215,18 @@ uint8_t difftime(const uint32_t *old, const uint32_t *old_frac, const uint32_t *
 	}
 }
 
+//
+// This function is used to decide whether a received packet, which is destined to some other host can be forwarded or not. 
+// The logic used for forwarding is very simple. A node should forward a packet only if it increases the chance of the 
+// packet reaching its destination. If the packet distance is considerably less than the distance of the destination from the 
+// node making the forwarding decision, it means that the packet's previous hop host was actually closer to the destination
+// than the current node making the forwarding decision. In this case, the packet is dropped. 
+// A second stricter check involves comparing the distance of the node making the forwarding decision with that of the original
+// source (present in the packet).
+//
+
 uint8_t routing_decision(uint8_t distance_from_me, uint8_t distance_from_orig_sender, uint8_t packet_distance, uint32_t old_timestamp, uint32_t old_timestamp_frac, uint32_t new_timestamp, uint32_t new_timestamp_frac)
 {
-#define DEBUG_ON_2 0
 #define DROP 0
 #define FORWARD 1
 
@@ -228,20 +252,47 @@ uint8_t routing_decision(uint8_t distance_from_me, uint8_t distance_from_orig_se
 	else{ 
 		return DROP;
 	}
-#if DEBUG			
 	printk(KERN_ALERT "\nThis shouldn't be ever printed. \n");
-#endif
 	return DROP;
 }
 
-/*This is the primary receive function for the newly defined packet type
- *It is assumed that when we arrive at this function, the skb->data points to the start of 
- *the payload of the packet after the MAC header
- *It internally calls the function eth_type_trans which actually classifies the packet
- *as being destined to the host, broadcast and so on
- *Based on information returned from eth_type_trans, this function will then re-transmit
- *if the packet is broadcast or destined to some other host.
- **/
+//
+// This is the primary receive function for the newly defined packet type. When we arrive at this function, 
+// the skb->data points to the start of the payload of the packet after the MAC header (i.e. it points to the 
+// start of the mymanethdr. The received packet is processed as follows:
+//
+// 1.	Do initial sanity checks on the packet and make sure it can be processed. If any check fails, free the buffer 
+//	and return.
+//
+// 2.	Go back and fetch the ethernet header. Create a mymanethdr object and copy the mymanethdr from the packet into
+//	the newly created object.
+//
+// 3.	Using eth_type_trans function classify the packet as - (1) Broadcast packet (2) Host Packet and (3) Other host 
+//	packet. There is a catch here, eth_type_trans function understands packets only in the standard format. Hence
+//	before giving the packet to eth_type_trans we have to reconstruct the original packet without the mymanethdr. 
+//	Remember that we had stored the original Ethernet header into the mymanethdr in wdl_hard_start_xmit(). It was 
+//	precisely for this reason. Original packet is reconstructed as follows - Suck out the mymanethdr object, 
+//	using that mymanethdr, recreate the original Ethernet header and push it back into the packet so that it goes 
+//	and sits just after that network/IP header. Then feed the socket buffer to eth_type_trans for processing, which
+//	then classifies the packet as mentioned above. It is important to remember that after synthesizing the packet, 
+//	the eth_type_trans function will strip off the newly created Ethernet header. 
+//
+// 4.	If the packet is a host packet, then update necessary reception statistics and simply queue the packet for the 
+//	higher layers to process. 
+//
+// 5.	If the packet belongs to a different host, it has to be forwarded. Update the reception statistics, distance in 
+//	the mymanethdr. Also decrement the number of hops by one. Then check if the routing_decision function decides 
+//	to forward the packet. If yes, then submit the packet for forwarding to the wdl_modify_and_transmit function with 
+//	a probability. This probability is used to mitigate boradcast storms in dense clusters. Every node maintains a 
+//	notion of a cluster around it, which is essentially the count of nodes that are at an effective distance less than
+//	a threshold distance. We assume that then when a node in a cluster receives a packet, most of the other nodes in 
+//	the cluster would have received it as well. The probability ensures that only a few nodes out of the cluster actually
+//	participate in forwarding. 
+//
+// 6.	If the packet is a broadcast packet, then it has to be forwarded. The algorithm is similar to a packet, which belongs
+//	to any other host. The only difference is, every broadcast packet is also queued for the higher layers to process.
+//
+//
 int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct packet_type *ptype, struct net_device *orig_dev)
 {
 
@@ -278,15 +329,7 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 		return 0;
 	}
 
-/*
-	if((global_recieved_count++) == 10) {
-#if DEBUG
-		printk(KERN_ALERT "\nRECIEVED 10 pkts on device %s", d->name);
-#endif
-	}
-*/
-
-	/*Since we are at the start of the payload after Eth header, go back and fetch the info.*/
+	//Since we are at the start of the payload after Eth header, go back and fetch the info.
 	memcpy(dest_mac, ( (skb->data - (2 * 6)) - 2 ), 6);
 	memcpy(src_mac, ( (skb->data - 6) - 2 ), 6);
 	memcpy(eth_type, ( skb->data - 2 ), 2);
@@ -296,43 +339,41 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 	mymanethdr.timestamp = sec_holder;
 	
 
-/*
-	printk(KERN_ALERT"    \nReceived Session ID as %d\n", mymanethdr.session_id);
-	printk(KERN_ALERT"    Received Hops Remaining as %d\n", mymanethdr.hops_remaining);
-	printk(KERN_ALERT"    Received Distance as %d\n", mymanethdr.distance);
-	printk(KERN_ALERT"    Received Original Distance as %d\n", mymanethdr.orig_distance);
-	printk(KERN_ALERT"    Received Timestamp as %ld\n", mymanethdr.timestamp);
-	printk(KERN_ALERT"    Received Original Source MAC as %x:%x:%x:%x:%x:%x\n", mymanethdr.original_source[0], mymanethdr.original_source[1], 
-		mymanethdr.original_source[2], mymanethdr.original_source[3], mymanethdr.original_source[4], mymanethdr.original_source[5]);
-	printk(KERN_ALERT"    Received Final Dest MAC as %x:%x:%x:%x:%x:%x\n", mymanethdr.final_destination[0], mymanethdr.final_destination[1], 
-		mymanethdr.final_destination[2], mymanethdr.final_destination[3], mymanethdr.final_destination[4], mymanethdr.final_destination[5]);
-	printk(KERN_ALERT"    Received Original Type as %x:%x\n", mymanethdr.eth_type_original[0], mymanethdr.eth_type_original[1]);
-*/
+
+	// printk(KERN_ALERT"    \nReceived Session ID as %d\n", mymanethdr.session_id);
+	// printk(KERN_ALERT"    Received Hops Remaining as %d\n", mymanethdr.hops_remaining);
+	// printk(KERN_ALERT"    Received Distance as %d\n", mymanethdr.distance);
+	// printk(KERN_ALERT"    Received Original Distance as %d\n", mymanethdr.orig_distance);
+	// printk(KERN_ALERT"    Received Timestamp as %ld\n", mymanethdr.timestamp);
+	// printk(KERN_ALERT"    Received Original Source MAC as %x:%x:%x:%x:%x:%x\n", mymanethdr.original_source[0], mymanethdr.original_source[1], mymanethdr.original_source[2], mymanethdr.original_source[3], mymanethdr.original_source[4], mymanethdr.original_source[5]);
+	// printk(KERN_ALERT"    Received Final Dest MAC as %x:%x:%x:%x:%x:%x\n", mymanethdr.final_destination[0], mymanethdr.final_destination[1], mymanethdr.final_destination[2], mymanethdr.final_destination[3], mymanethdr.final_destination[4], mymanethdr.final_destination[5]);
+	// printk(KERN_ALERT"    Received Original Type as %x:%x\n", mymanethdr.eth_type_original[0], mymanethdr.eth_type_original[1]);
 
 
-	/*Do skb_pull of MANIFOLD_HEADER_SIZE*/
+
+	// Do skb_pull of MANIFOLD_HEADER_SIZE
 	skb_pull(skb, MANIFOLD_HEADER_SIZE);
-	/*End: Extraction of Manifold Header fields ends here*/
+	// End: Extraction of Manifold Header fields ends here
 
-	/*eth_type_trans will understand only the original eth_type numbers*/
-	/*Build a normal ethernet layer packet header so that eth_type_trans can synthesize it.*/
+	// eth_type_trans will understand only the original eth_type numbers
+	// Build a normal ethernet layer packet header so that eth_type_trans can synthesize it.
 	memcpy(skb_push(skb, 2), mymanethdr.eth_type_original, 2 );
 	memcpy(skb_push(skb, 6), mymanethdr.original_source, 6);
 	memcpy(skb_push(skb, 6), mymanethdr.final_destination, 6);
 
-	skb->pkt_type = PACKET_HOST; /* Assumed. eth_type_trans will overwrite it anyways.*/
-	/*Remember that eth_type_trans function does skb_pull of length ETH_HLEN. 
-	 * So the newly created Eth header will be stripped off
-	 * */
+	skb->pkt_type = PACKET_HOST; // Assumed. eth_type_trans will overwrite it anyways.
+	// Remember that eth_type_trans function does skb_pull of length ETH_HLEN. 
+	// So the newly created Eth header will be stripped off
+
 	skb->protocol = eth_type_trans(skb, netdev);
 
-	/*Start of Actual Processing*/
-	/*No Need to do SKB expansion since this is a Manifold packet which has already been expanded
-	 * to have sufficient head-room*/
+	// Start of Actual Processing
+	// No Need to do SKB expansion since this is a Manifold packet which has already been expanded
+	// to have sufficient head-room
 
 	if (skb->pkt_type == PACKET_HOST) {
 
-		/*Add or Update this MAC entry to our Stat List*/
+		// Add or Update this MAC entry to our Stat List
 		add_or_update_stat_entry(mymanethdr.original_source, 0, mymanethdr.session_id, mymanethdr.final_destination);
 
 #if MYMANET_STORE_PATH
@@ -343,66 +384,44 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 		#endif		
 #endif
 
-		/*Initialize old timestamp*/
+		// Initialize old timestamp
 		old_timestamp = 0;
 		old_timestamp_frac = 0;
 
-		//Get the timestamp of this final destination
+		// Get the timestamp of this final destination
 		old_timestamp = search_for_timestamp(mymanethdr.original_source);
 		old_timestamp_frac = search_for_timestamp_frac(mymanethdr.original_source);
-		/*
-		if((old_timestamp == 0)){
-			//This mac entry does not exist. Add it.
-			add_or_update_timestamp_entry(mymanethdr.original_source, mymanethdr.timestamp, mymanethdr.timestamp_frac);
-			netif_rx(skb);
-		}
-		else if(difftime(&old_timestamp, &old_timestamp_frac, &mymanethdr.timestamp, &mymanethdr.timestamp_frac)==NEW || difftime(&old_timestamp, &old_timestamp_frac, &mymanethdr.timestamp, &mymanethdr.timestamp_frac)==OUT_OF_ORDER){		
-			//This is a NEW packet from an existing mac. Update the entry
-			add_or_update_timestamp_entry(mymanethdr.original_source, mymanethdr.timestamp, mymanethdr.timestamp_frac);
-			netif_rx(skb);
-		}
-		else{
-			//This is neither a new mac entry, nor a new packet from an existing mac entry. 
-			//Possibly a duplicate packet. Do not update our timestamps.
-			//Do not forward duplicate packets to the higher layers
-			g_per_session_dup_cnt++;
-			if(skb != NULL){
-				kfree_skb(skb);
-			}
-		}
 
-		return 0;
-		*/
 		netif_rx(skb);
 		return 0;
 	}
 	if ((skb->pkt_type == PACKET_BROADCAST) || (skb->pkt_type == PACKET_OTHERHOST)) {
-		/*We need to forward such packets after making some changes i.e. broadcast retransmit*/
+		// We need to forward such packets after making some changes i.e. broadcast retransmit
 
-		/*Get my distance from this final destination*/
+		// Get my distance from this final destination
 		distance_from_me = search_for_distance(mymanethdr.final_destination);
 
-		/*Initialize old timestamp*/
+		// Initialize old timestamp
 		old_timestamp = 0;
 		old_timestamp_frac = 0;
 
-		/*Get the timestamp of this final destination*/
+		// Get the timestamp of this final destination
 		old_timestamp = search_for_timestamp(mymanethdr.original_source);
 		old_timestamp_frac = search_for_timestamp_frac(mymanethdr.original_source);
 		if((old_timestamp == 0)){
-			/*This mac entry does not exist. Add it.*/	
+			// This mac entry does not exist. Add it.
 			add_or_update_timestamp_entry(mymanethdr.original_source, mymanethdr.timestamp, mymanethdr.timestamp_frac);
 		}
 		else if(difftime(&old_timestamp, &old_timestamp_frac, &mymanethdr.timestamp, &mymanethdr.timestamp_frac)==NEW || difftime(&old_timestamp, &old_timestamp_frac, &mymanethdr.timestamp, &mymanethdr.timestamp_frac)==OUT_OF_ORDER){		
-			/*This is a NEW packet from an existing mac. Update the entry*/
+			// This is a NEW packet from an existing mac. Update the entry
 			add_or_update_timestamp_entry(mymanethdr.original_source, mymanethdr.timestamp, mymanethdr.timestamp_frac);
 		}
 		else{
-			/*This is neither a new mac entry, nor a new packet from an existing mac entry. 
-			Possibly a duplicate packet. Do not update our timestamps.*/
+			// This is neither a new mac entry, nor a new packet from an existing mac entry. 
+			// Possibly a duplicate packet. Do not update our timestamps.
 		}
 
-		/*Reduce the Number of Remaining Hops for this packet*/
+		// Reduce the Number of Remaining Hops for this packet
 		mymanethdr.hops_remaining = mymanethdr.hops_remaining - 1;
 
 		if(!(global_fwd_disable) && (!global_manifold_disable) && (distance_from_me != 0) && (mymanethdr.hops_remaining != 0)
@@ -440,9 +459,10 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 
 		if(skb->pkt_type == PACKET_BROADCAST){
 			flag = 1;
-			/*Add or Update this MAC entry to our Stat List*/
+			// Add or Update this MAC entry to our Stat List
 			add_or_update_stat_entry(mymanethdr.original_source, 0, mymanethdr.session_id, mymanethdr.final_destination);
-			netif_rx(skb); /*This is originally a Broadcast packet. For E.g. Heart-Beats*/
+			netif_rx(skb); 
+			// This is originally a Broadcast packet. For E.g. Heart-Beats
 		}
 		if((flag != 1) && (skb != NULL)){
 			kfree_skb(skb);
@@ -450,8 +470,8 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 
 		return 0;
 	}
-	else{	/*Packet is neither broadcast nor unicast. In the case of MyMANET, it appears to be be a garbled packet. Free the skb.*/
-		/*Add or Update this MAC entry to our Stat List*/
+	else{	// Packet is neither broadcast nor unicast. In the case of MyMANET, it appears to be be a garbled packet. Free the skb.
+		// Add or Update this MAC entry to our Stat List
 		add_or_update_stat_entry(mymanethdr.original_source, 0, mymanethdr.session_id, mymanethdr.final_destination);
 
 #if MYMANET_STORE_PATH
@@ -468,8 +488,54 @@ int wdl_handle_recieve(struct sk_buff *skb, struct net_device *netdev, struct pa
 }
 
 
-/*This function will do the actual job of transmitting the packet through this module
- * It calls the lower level hard_start_xmit function which was earlier saved during the module initialization*/
+//
+// This function is called by the network layer for packet transmission after the module is loaded. 
+// The mechanism of how this function gets called is explained before the hello_init() function.
+//
+// skb_original points to the start of the ethernet header of the packet. The flow of this function
+// is as follows:
+//
+// ->	Create a MyMANET header object - mymanethdr
+//
+// ->	Copy the Ethernet header fields from the packet into the relevant fields in mymanethdr. This is 
+//	necessary to reconstruct the original Ethernt header after the packet has been received by some node.
+//
+// ->	This function is called in two scenarios - (1) during transmission and (2) during forwarding
+//
+// ->	If it is coming from the forwarding channel, do no change it. Directly call the device
+//	hard_start_xmit function (remember we had backed it up in the hello_init() function), which
+//	then actually transmits the packet and return.
+//
+// ->	If control comes here, the packet is coming from the transmission channel. Add more room 
+//	between the network header and the MAC header so as to fit the mymanethdr. Size of the room
+//	should be exactly equal to the size of mymanethdr. 
+//
+// ->	Suck out the Ethernet header. 
+//
+// ->	Update remaining fields in the mymanethdr that are necessary for routing such as effective distance, 
+//	ttl or hop count, original source mac, etc. Push the mymanethdr into the packet so that it goes 
+//	and sits just after the network/IP header
+//
+// ->	Change the destination MAC of the Ethernet header to broadcast mac FF:FF:FF:FF:FF:FF (to know why this 
+//	is done, you would need to undersand how the routing works in LifeNet). Then change the 
+//	packet type to [33][33]. Push back the Ethernet header into the packet so that it goes and sits
+//	just after the mymanethdr.
+//
+// ->	Transmit the packet. Transmission involves a bit of manipulation. In LifeNet, every packet is always
+//	transmitted to is broadcast MAC address. Unlike unicast packets, the MAC layer does not guarantee
+//	successful packet delivery for broadcast packets. Usually after transmission of a unicast packet, the 
+//	MAC layer waits for a MAC-level acknowledgement from the destination. If the waiting times out and the
+//	ack still does not come, the MAC repeats the unicast transmission. The maximum retry limit is be default
+//	set to 7 for most cards. This retry mechanism is heavily optimized at the MAC and guarantees successful
+//	MAC level packet delivery for most packets. However, for broadcast packets things are different. 
+//	There is no intended single destination for broadcast traffic. The MAC does not have a notion of 
+//	a singular destination for broadcast traffic and hence it does not wait and check if the packet has been
+//	delivered to the destination. It simply transmits the packet and returns the control to the caller. This
+//	lack of guarantee of successful delivery at the MAC layer inherently induces some packet loss. To reduce
+//	this inherent packet loss, we call the device hard_start_xmit function more than once for a single packet.
+//	The logic is, by looking at the effective distance of the final destination, we try to estimate/guess the 
+//	amount of inherent packet loss at the MAC level and call repeat transmissions accordingly.
+//
 int wdl_hard_start_xmit(struct sk_buff *skb_original, struct net_device *netdev)
 {
 
@@ -582,23 +648,17 @@ int wdl_hard_start_xmit(struct sk_buff *skb_original, struct net_device *netdev)
 						{
 							dev_queue_xmit(skb_copy(skb, GFP_ATOMIC));
 							dev_queue_xmit(skb_copy(skb, GFP_ATOMIC));
-							//wdl_hard_start_xmit(skb_copy(skb, GFP_ATOMIC), netdev);
-							//wdl_hard_start_xmit(skb_copy(skb, GFP_ATOMIC), netdev);
 						}
 					}
 					else
 					{
 						dev_queue_xmit(skb_copy(skb, GFP_ATOMIC));
 						dev_queue_xmit(skb_copy(skb, GFP_ATOMIC));						
-						//wdl_hard_start_xmit(skb_copy(skb, GFP_ATOMIC), netdev);
-						//wdl_hard_start_xmit(skb_copy(skb, GFP_ATOMIC), netdev);
 					}
 				}
 
 				
-				//return wdl_hard_start_xmit(skb, netdev);
 				return (*device_hard_start_xmit_backup)(skb, netdev);
-				//return dev_queue_xmit(skb);
 			}
 			else{
 				printk(KERN_ALERT "\n\nDevice was DOWN !! \n\n");
@@ -611,11 +671,19 @@ int wdl_hard_start_xmit(struct sk_buff *skb_original, struct net_device *netdev)
 }
 
 
-/*Basic Module specific code starts here*/
 
-/* This function is called everytime when the module is un-loaded
- * It re-instates the hard_start_xmit function to the lower level function and 
- * deletes the proc entry as well as removes the new registered packet type*/
+//
+// This function is called everytime the module is unloaded
+//
+// -> 	Reinstate the device transmit function (hard_start_xmit) or (ndo_start_xmit)
+//
+// -> 	Delete the newly registered packet type
+//
+// -> 	Delete proc file system entries
+//
+// -> 	Free any memory held up by the module
+//
+
 static void hello_exit(void)
 {
 	#if MYMANET_KERNEL_VERSION_6_30_PLUS
@@ -647,16 +715,46 @@ static void hello_exit(void)
 	free_entire_distance_list();
 	free_entire_stat_list();
 
-	printk(KERN_ALERT "\nByee! nice world\n");
+	printk(KERN_ALERT "\nByee from LifeNet! \n");
 }
 
-/*This is the MAIN module initialization function for the module.
- *It's called everytime we try to load the module
- *It creates a new proc entry and also registers a new packet type
- *It grabs the main DEVICE structure(net_device) for the interface specified in the module.
- *It then saves the lower level transmit function in a function pointer for later use; and then
- *replaces it with the module's own transmit function i.e. wdl_hard_start_xmit
- * */
+// 
+// This function initializes the kernel module into the linux kernel.
+// The kernel module, sits at layer 2.5, meaning between the network or IP
+// layer and the data link layer. This function initializes the kernel 
+// module accordingly into the linux networking stack. This insertion of 
+// a new layer is transparent to the higher layers such as transport and 
+// application layers.
+//
+// ->	Register the new packet type. Usually most packets on WiFi have [08][00]
+//	as their packet type. Packets traversing the kernel module are assigned
+//	a new packet type [34][34]. This packet type is defined in the main header
+//	file. It also registers the receive function, which the kernel calls each time 
+//	after it receives packets of type [34][34].
+//
+// ->	Create files in the proc file-system. These files are used to export
+//	data from the kernel space to the user space and vice versa.
+//
+// ->	Initialize timer and other data structures used in the module code.
+//
+// ->	Replace the lower level transmit function (called hard_start_xmit) of the device
+//	with a new function wdl_hard_start_xmit. This new function modifies the packet, 
+//	inserts the header information required for routing the packet at layer 2.5 and 
+//	then calls the hard_start_xmit internally. This means that after the module is 
+//	loaded, as packets come down from the higher layers to the lower layers for 
+//	transmission, whenever the network layer calls the data link layer's hard_start_xmit 
+//	function, in actuality, the new wdl_hard_start_xmit of the newly loaded module gets 
+//	called. Thus the new layer between IP and data link layer.
+//	For newer kernels 2.6.30+ the architecture of linux networking is revamped. This 
+//	change does not allow one to singularly replace the hard_start_xmit function as it
+//	exists no more. A new structure has been defined called netdev_ops for each device. 
+//	This structure stores a pointer to the transmit function of the device called as 
+//	ndo_start_xmit. The new structure netdev_ops is defined as a constant, so its 
+//	attributes, one of which is the ndo_start_xmit cannot be replaced. Hence, we clone
+//	the netdev_ops structure and then replace its ndo_start_xmit function with 
+//	wdl_hard_start_xmit function
+//
+
 static int hello_init(void)
 {
 
