@@ -30,8 +30,14 @@ Last updated - 27 Jun 2011
 		--> scripts/      - this directory contains executable scripts that are used to start and stop LifeNet and its applications
 		--> openwrt/      - this directory contains the source and configuration files required for compilation on and installation on OpenWRT platform
 		--> configure     - this executable script is used for configuring LifeNet before compilation and installation
-                --> compile       - this executable script is used for compiling LifeNet after configuration and before installation
-                --> install       - this executable script is used to install LifeNet after configuration and compilation
+                --> compile
+                    - this executable script is used for compiling LifeNet after configuration and before installation
+                --> compile_optional_apps
+                    - this optional executable script is used for compiling additional LifeNet applications
+                --> install
+                    - this executable script is used to install LifeNet after configuration and compilation
+                --> install_optional_apps
+                    - this optional executable script is used to install additional LifeNet applications
 
 ----------------
 2. Compatibility
@@ -65,10 +71,18 @@ b. Name of your Ethernet network interface
 
 	Command -> $sudo ./compile
 
+
+    OPTIONAL:
+	Command -> $sudo ./compile_optional_apps
+
 [Step 3 - Installation]
 -----------------------
 
 	Command -> $sudo ./install
+
+
+    OPTIONAL:
+	Command -> $sudo ./install_optional_apps
 
 [Step 4 - LifeNet commands]
 ---------------------------
@@ -80,6 +94,8 @@ Once the above mentioned 3 steps are successfully executed, you can use the foll
 [Stopping Lifenet]
 	Command -> $lifenet_stop
 
+
+OPTIONAL:
 [Starting Network Visualization]
 	Command -> $lifenet_visualize
 

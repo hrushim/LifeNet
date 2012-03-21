@@ -10,27 +10,17 @@ mkdir $INSTALL_DIR 1> /tmp/install_log1
 mkdir $INSTALL_DIR/config 1> /tmp/install_log1
 mkdir $HOME/.LifeNetData 1> /tmp/install_log1
 
-#chmod 744 scripts/lifenet_start
-#chmod 744 scripts/lifenet_stop
-
-cp applications/CommandListener/dist/Debug/GNU-Linux-x86/commandlistener /bin
 cp applications/Inject/dist/Debug/GNU-Linux-x86/inject /bin
 cp applications/Sniff/dist/Debug/GNU-Linux-x86/sniff /bin
 cp applications/PathTraceLogger/dist/Debug/GNU-Linux-x86/pathtracelogger /bin
-cp applications/ArpUpdater/dist/Debug/GNU-Linux-x86/arpupdater /bin
-cp applications/DisplayGnst/dist/Debug/GNU-Linux-x86/displaygnst /bin
 cp scripts/lifenet_start /bin
 cp scripts/lifenet_stop /bin
-cp scripts/lifenet_visualize /usr/sbin
-cp scripts/lifenet_chat /usr/sbin
-cp scripts/lifenet_ftp /usr/sbin
 
 cp -r config/ $INSTALL_DIR/config/
 cp -r config/ $HOME/.LifeNetData/
 cp -r firewall/ $HOME/.LifeNetData/
 cp mymanet.conf $HOME/.LifeNetData/config
 cp -r src/manifold.ko $HOME/.LifeNetData/
-cp -r applications/ $INSTALL_DIR/applications/
 
-echo "\nCongratulations!! \nLifeNet is now installed on your system.\nYou can use the following commands henceforth to start or stop LifeNet.\n-> lifenet_start\n-> lifenet_stop\n"
+echo "\nLifeNet has now been installed on your system.\nYou can use the following commands to start or stop LifeNet.\n-> lifenet_start\n-> lifenet_stop\n"
 

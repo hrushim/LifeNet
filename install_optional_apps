@@ -1,0 +1,16 @@
+#!/bin/sh
+exec 2> ./tmp.install_opt_apps.errorlog.`date`
+
+INSTALL_DIR=`cat config/install_path.conf`
+
+cp applications/CommandListener/dist/Debug/GNU-Linux-x86/commandlistener /bin
+cp applications/ArpUpdater/dist/Debug/GNU-Linux-x86/arpupdater /bin
+cp applications/DisplayGnst/dist/Debug/GNU-Linux-x86/displaygnst /bin
+cp scripts/lifenet_visualize /usr/sbin
+cp scripts/lifenet_chat /usr/sbin
+cp scripts/lifenet_ftp /usr/sbin
+
+cp -r applications/ $INSTALL_DIR/applications/
+
+echo "\nOptional LifeNet applications have been installed on your system.\nYou can use the following commands to start or stop LifeNet.\n-> lifenet_start\n-> lifenet_stop\n"
+

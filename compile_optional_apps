@@ -1,0 +1,43 @@
+#!/bin/sh
+
+exec 1> /dev/null
+exec 2> ./tmp.compile_opt_apps.errorlog.`date`
+
+echo -e "\nCompiling Optional Applications...\n"
+
+cd applications/CommandListener
+make clean
+make
+cd ./../../
+
+cd applications/DisplayGnst
+make clean
+make
+cd ./../../
+
+cd applications/ArpUpdater
+make clean
+make
+cd ./../../
+
+cd applications/LifeNetFTP
+ant clean
+ant jar
+cd ../../
+
+cd applications/MyMANET-chat
+ant clean
+ant jar
+cd ../../
+
+cd applications/NetVisualize
+ant clean
+ant jar
+cd ../../
+
+cd applications/LifeNetSMS
+ant clean
+ant jar
+cd ../../
+
+echo -e "\nIf no errors are seen, please run installation script -> sudo ./install\n\n"
