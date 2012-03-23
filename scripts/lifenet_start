@@ -231,26 +231,5 @@ sleep 5
 echo -e -n "OK\n"
 
 echo -e -n "Starting Sniffer..."
-sudo /bin/sniff $WIFI_IF $MYMANET_TOLERANCE 0 $MYMANET_IS_EMB_DEV $MYMANET_FWD_THRESHOLD & > /tmp/snifflog
-sleep 2
-echo -e "\nLifeNet is ON now!!"
-
-echo -e -n "\nStarting the Messaging Module..."
-echo -e "\nPress [Ctrl-C] to exit LifeNet gracefully!"
-/usr/sbin/lifenet_chat 
-sleep 2
-echo -e -n "OK\n"
-
-echo -e "\n============ LifeNet_Beta 1.0 unload utility ============"
-
-echo -e -n "\nRemoving LifeNet Kernel Module"
-COMMAND_OUT=`sudo rmmod manifold 2>&1 | wc -l`
-sleep 2
-echo -e -n "OK"
-
-sudo iwconfig $WIFI_IF ap 00:00:00:00:00:00
-
-sleep 2
-
-sudo touch $APP_DATA_PATH/install_log
-echo "Done!! LifeNet has terminated gracefully."
+echo -e "\nLifeNet is ON now!! To stop LifeNet use 'lifenet_stop'... "
+sudo /bin/sniff $WIFI_IF $MYMANET_TOLERANCE 0 $MYMANET_IS_EMB_DEV $MYMANET_FWD_THRESHOLD &
