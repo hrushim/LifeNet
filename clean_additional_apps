@@ -1,0 +1,49 @@
+#!/bin/bash
+clear
+
+
+cd applications/CommandListener
+if [ $? == 0 ]; then
+    make clean
+    rm -rf dist/ build
+    cd ./../../
+fi
+
+cd applications/LifeNetSMS
+if [ $? == 0 ]; then
+    ant clean
+    cd ./../../
+fi
+
+cd applications/DisplayGnst
+if [ $? == 0 ]; then
+    make clean
+    rm -rf dist/ build/
+    cd ./../../
+fi
+
+cd applications/ArpUpdater
+if [ $? == 0 ]; then
+    make clean
+    rm -rf dist/ build/
+    cd ./../../
+fi
+
+cd applications/LifeNetFTP
+if [ $? == 0 ]; then
+    ant clean
+    cd ../../
+fi
+
+cd applications/MyMANET-chat
+if [ $? == 0 ]; then
+    ant clean
+    cd ../../
+fi
+
+cd applications/NetVisualize
+if [ $? == 0 ]; then
+    ant clean
+    cd ../../
+fi
+

@@ -23,22 +23,26 @@ Last updated - 27 Jun 2011
 1. Description of code
 ----------------------
 
-	LifeNet --> applications/ - this directory contains 7 applications (Sniffer, Injector, Network visualization, Communicator, File Transfer, ArpUpdater, PathTraceLogger)
-		--> config/       - this directory contains configuration information that is generated during installation
-		--> firewall/     - this directory contains iptables scripts for automated gateway configuration
-                --> src/          - this directory contains the code for LifeNet Kernel Module
-		--> scripts/      - this directory contains executable scripts that are used to start and stop LifeNet and its applications
-		--> openwrt/      - this directory contains the source and configuration files required for compilation on and installation on OpenWRT platform
-		--> configure     - this executable script is used for configuring LifeNet before compilation and installation
-                --> compile
-                    - this executable script is used for compiling LifeNet after configuration and before installation
-                --> compile_optional_apps
-                    - this optional executable script is used for compiling additional LifeNet applications
-                --> install
-                    - this executable script is used to install LifeNet after configuration and compilation
-                --> install_optional_apps
-                    - this optional executable script is used to install additional LifeNet applications
-
+    LifeNet --> applications/ - this directory contains 7 applications (Sniffer, Injector, Network visualization, Communicator, File Transfer, ArpUpdater, PathTraceLogger)
+        --> config/       - this directory contains configuration information that is generated during installation
+        --> firewall/     - this directory contains iptables scripts for automated gateway configuration
+        --> src/          - this directory contains the code for LifeNet Kernel Module
+        --> scripts/      - this directory contains executable scripts that are used to start and stop LifeNet and its applications
+        --> openwrt/      - this directory contains the source and configuration files required for compilation on and installation on OpenWRT platform
+        --> configure
+            - this executable script is used for configuring LifeNet before compilation and installation
+        --> compile
+            - this executable script is used for compiling LifeNet after configuration and before installation
+        --> compile_optional_apps
+            - this optional executable script is used for compiling additional LifeNet applications
+        --> install
+            - this executable script is used to install LifeNet after configuration and compilation
+        --> install_optional_apps
+            - this optional executable script is used to install additional LifeNet applications
+        --> clean
+            - This script clears the build artifacts of the core Lifenet code
+        --> clean_additional_apps
+            - This script clears the build artifacts of the additional Lifenet applications' code
 ----------------
 2. Compatibility
 ----------------
@@ -46,11 +50,14 @@ Last updated - 27 Jun 2011
 LifeNet supports and has been fully tested on the following operating systems:
 
 - Ubuntu Linux distributions including and after 8.04
+*NOTE: We have not tested Lifenet on latest Ubuntu versions running a 3.0+ kernel.
+
 - Kubuntu Linux distributions including and after 8.04
+*NOTE: We have not tested Lifenet on latest Kubuntu versions running a 3.0+ kernel.
 
 LifeNet can also work on other Linux distributions. However, the developers haven't yet fully tested LifeNet onto Linux distros other than those mentioned above. Please feel free to try it out on other Linux distributions that you may have and email your feedback to any of the following with 'LifeNet feedback' as your email subject:
 - hrushi@gatech.edu
-- ashwin1985@gmail.com
+- ashwin.p@gatech.edu
 - vempala@cc.gatech.edu
 
 ---------------------

@@ -63,124 +63,35 @@ export MYMANET_ALPHA
 export MYMANET_BETA
 export MYMANET_STORE_PATH
 
-#HAS_KERNEL_SUPPORT=`uname -r | grep -i "2.6.3" | wc -l`
-#if [ "$HAS_KERNEL_SUPPORT" -eq "1"  ]; then
-
-#        echo "do nothing"
-#        MYMANET_KERNEL_VERSION_6_30_PLUS=1
-#	export MYMANET_KERNEL_VERSION_6_30_PLUS
-        #exit
-
-#else
-#        MYMANET_KERNEL_VERSION_6_30_PLUS=0
-#	export MYMANET_KERNEL_VERSION_6_30_PLUS
-
-#fi
-
-
-#echo "Kernel 6.3 plus? = $MYMANET_KERNEL_VERSION_6_30_PLUS"
-
-
-#echo -e "Completed\n"
-
 rm -rf ./*~
 
 rm -rf ./config/*
 
 cd src
+if [ $? == 0 ]; then
+    make clean
+    cd ..
+fi
 
-#echo -e "\nCompiling LifeNet kernel module...\n"
-
-#sleep 2
-
-make clean
-#kern_version=`uname -r`
-#echo "Your kernel version is : $kern_version"
-#v1=$(echo $kern_version | sed -e 's![^0-9]\+! & !g' -e 's![\.\-]!!g')
-#echo $v1
-#set -- $v1; v1comp=$2; v2comp=$3; shift; v1=$*
-
-
-#if [ $v1comp -lt "6" -o $v1comp -eq "6" -a $v2comp -lt "24" ]; then
-#        echo "Seems like you are having an older kernel  - version (2.$v1comp.$v2comp). Setting compilation flag to NEW_KERNEL=0"
-#        NEW_KERNEL_TRUE=0
-#else
-#        echo "Seems like you are having a new kernel  - version (2.$v1comp.$v2comp). Setting compilation flag to NEW_KERNEL=1"
-#        NEW_KERNEL_TRUE=1
-#fi
-
-#make NEW_KERNEL=$NEW_KERNEL_TRUE MYMANET_ALPHA=$MYMANET_ALPHA MYMANET_BETA=$MYMANET_BETA MYMANET_KERNEL_VERSION_6_30_PLUS=$MYMANET_KERNEL_VERSION_6_30_PLUS MYMANET_STORE_PATH=$MYMANET_STORE_PATH
-
-cd ..
-
-#echo -e "\nCompilation successful!!"
-
-#echo -e "\nCompiling Applications...\n"
-
-#if [ "$MYMANET_STORE_PATH" -eq "1"  ]; then
-
+if [ "$MYMANET_STORE_PATH" -eq "1"  ]; then
 	cd applications/PathTraceLogger
-	make clean
-	rm -rf dist/ build/
-	#make
-	cd ./../../
-
-#fi
-
-#cd applications/LifeNet
-#make clean
-#rm -rf dist/ build/
-#make
-#cd ./../../
-
-cd applications/CommandListener
-make clean
-rm -rf dist/ build
-#ant jar
-cd ./../../
-
-cd applications/LifeNetSMS
-ant clean
-#ant jar
-cd ./../../
-
-cd applications/DisplayGnst
-make clean
-rm -rf dist/ build/
-#make
-cd ./../../
-
-cd applications/ArpUpdater
-make clean
-rm -rf dist/ build/
-#make
-cd ./../../
+    if [ $? == 0 ]; then
+	    make clean
+	    rm -rf dist/ build/
+	    cd ./../../
+    fi
+fi
 
 cd applications/Inject
-make clean
-rm -rf dist/ build/
-#make
-cd ./../../
+if [ $? == 0 ]; then
+    make clean
+    rm -rf dist/ build/
+    cd ./../../
+fi
 
 cd applications/Sniff
-make clean
-rm -rf dist/ build/
-#make
-cd ../../
-
-cd applications/LifeNetFTP
-ant clean
-#ant jar
-cd ../../
-
-cd applications/MyMANET-chat
-ant clean
-#ant jar
-cd ../../
-
-cd applications/NetVisualize
-ant clean
-#ant jar
-cd ../../
-
-#echo -e "\nIf no errors are seen, please run installation script -> sudo ./install\n\n"
+if [ $? == 0 ]; then
+    make clean
+    rm -rf dist/ build/
+    cd ../../
+fi
