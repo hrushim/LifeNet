@@ -29,12 +29,9 @@ Georgia Institute of Technology, Atlanta, USA
 #define MYMANET_BETA 5
 #endif
 
-#ifndef MYMANET_KERNEL_VERSION_6_30_PLUS
-#define MYMANET_KERNEL_VERSION_6_30_PLUS 0
-#endif
-
 #include<linux/kernel.h>
 #include<linux/init.h>
+#include<linux/version.h>
 #include<linux/sched.h>
 #include<linux/module.h>
 #include<linux/moduleparam.h>
@@ -686,21 +683,21 @@ int wdl_hard_start_xmit(struct sk_buff *skb_original, struct net_device *netdev)
 
 static void hello_exit(void)
 {
-	#if MYMANET_KERNEL_VERSION_6_30_PLUS
-		struct net_device_ops new_netdev_ops;
-		struct net_device_ops *new_netdev_ops_ptr = &new_netdev_ops;
-	#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,29)
+    struct net_device_ops new_netdev_ops;
+    struct net_device_ops *new_netdev_ops_ptr = &new_netdev_ops;
+#endif
 	mod_timer(&g_session_timer, jiffies + 1);
 	del_timer_sync(&g_session_timer);
 
 	if((device_hard_start_xmit_backup != NULL) && (d !=NULL)) {
-		#if MYMANET_KERNEL_VERSION_6_30_PLUS
-			memcpy(&new_netdev_ops, d->netdev_ops, sizeof(struct net_device_ops));
-			new_netdev_ops_ptr->ndo_start_xmit = device_hard_start_xmit_backup;
-			memcpy((void *)d->netdev_ops, &new_netdev_ops, sizeof(struct net_device_ops));
-		#else
-			d->hard_start_xmit = device_hard_start_xmit_backup;
-		#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,29)
+        memcpy(&new_netdev_ops, d->netdev_ops, sizeof(struct net_device_ops));
+        new_netdev_ops_ptr->ndo_start_xmit = device_hard_start_xmit_backup;
+        memcpy((void *)d->netdev_ops, &new_netdev_ops, sizeof(struct net_device_ops));
+#else
+        d->hard_start_xmit = device_hard_start_xmit_backup;
+#endif
 	}
 
 	if(d != NULL)
@@ -760,10 +757,10 @@ static int hello_init(void)
 
 	struct proc_dir_entry *proc_entry, *proc_entry_rxstats, *proc_entry_txstats, *proc_entry_distance;
 
-	#if MYMANET_KERNEL_VERSION_6_30_PLUS
-		struct net_device_ops new_netdev_ops;
-		struct net_device_ops *new_netdev_ops_ptr = &new_netdev_ops;
-	#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,29)
+    struct net_device_ops new_netdev_ops;
+    struct net_device_ops *new_netdev_ops_ptr = &new_netdev_ops;
+#endif
 
 	dev_add_pack(&manifold_ptype);
 
@@ -820,7 +817,7 @@ static int hello_init(void)
 		hello_exit();
 		return 0;
 	}
-#if NEW_KERNEL
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,29)
 	d = dev_get_by_name(&init_net, device_name);
 #else
 	d = dev_get_by_name(device_name);
@@ -831,15 +828,15 @@ static int hello_init(void)
 	else
 		hello_exit();
 
-	#if MYMANET_KERNEL_VERSION_6_30_PLUS
-		device_hard_start_xmit_backup = d->netdev_ops->ndo_start_xmit;
-		memcpy(&new_netdev_ops, d->netdev_ops, sizeof(struct net_device_ops));
-		new_netdev_ops_ptr->ndo_start_xmit = wdl_hard_start_xmit;
-		memcpy((void *)d->netdev_ops, &new_netdev_ops, sizeof(struct net_device_ops));
-	#else
-		device_hard_start_xmit_backup = d->hard_start_xmit;
-		d->hard_start_xmit = wdl_hard_start_xmit;
-	#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,29)
+    device_hard_start_xmit_backup = d->netdev_ops->ndo_start_xmit;
+    memcpy(&new_netdev_ops, d->netdev_ops, sizeof(struct net_device_ops));
+    new_netdev_ops_ptr->ndo_start_xmit = wdl_hard_start_xmit;
+    memcpy((void *)d->netdev_ops, &new_netdev_ops, sizeof(struct net_device_ops));
+#else
+    device_hard_start_xmit_backup = d->hard_start_xmit;
+    d->hard_start_xmit = wdl_hard_start_xmit;
+#endif
 
 	return 0;
 }
